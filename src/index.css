@@ -1,0 +1,205 @@
+/* ── Fonts: Playfair Display (serif elegante) + DM Sans (cuerpo moderno) ── */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+/* ── Design tokens ──────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-mono: "DM Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Luxury palette */
+  --color-ink:      #0c0a09;
+  --color-ink-soft: #1c1917;
+  --color-gold:     #c9a84c;
+  --color-gold-lt:  #e2c37a;
+  --color-gold-dim: #8a6d2f;
+  --color-cream:    #faf7f2;
+  --color-cream-dim:#f0ead8;
+  --color-stone-1:  #292524;
+  --color-stone-2:  #44403c;
+  --color-stone-3:  #78716c;
+  --color-stone-4:  #a8a29e;
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #f9f6f1;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+  }
+
+  /* Scrollbar minimalista */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d6cfc4; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+}
+
+/* ── Grain overlay ──────────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+/* El contenido va sobre el grain */
+#root { position: relative; z-index: 1; }
+
+/* ── Blur backdrop ──────────────────────────────────────────────────────── */
+.backdrop-blur-md-custom {
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+}
+
+/* ── Smooth transitions ─────────────────────────────────────────────────── */
+.smooth-transition {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── FiltersBar dropdown (rendering-hoist-jsx: moved from inline style tag) ── */
+@keyframes selectDropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+/* ── Property card selected — gold shimmer border ───────────────────────── */
+.property-card-selected {
+  position: relative;
+  border-color: transparent !important;
+  box-shadow:
+    0 0 0 1.5px rgba(201, 168, 76, 0.6),
+    0 8px 32px rgba(201, 168, 76, 0.12),
+    0 2px 8px rgba(0,0,0,0.06);
+}
+
+.property-card-selected::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, #c9a84c, #e2c37a, #8a6d2f, #c9a84c);
+  background-size: 300% 300%;
+  animation: goldShimmer 3s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes goldShimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Carousel animation ─────────────────────────────────────────────────── */
+@keyframes carouselFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.carousel-img-enter {
+  animation: carouselFadeIn 0.35s ease-out;
+}
+
+/* Hover zoom on carousel image */
+.carousel-container img {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.carousel-container:hover img {
+  transform: scale(1.06);
+}
+
+/* ── Staggered fade-up for property cards ───────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.fade-up-1 { animation-delay: 0.05s; }
+.fade-up-2 { animation-delay: 0.10s; }
+.fade-up-3 { animation-delay: 0.15s; }
+.fade-up-4 { animation-delay: 0.20s; }
+.fade-up-5 { animation-delay: 0.25s; }
+.fade-up-6 { animation-delay: 0.30s; }
+
+/* ── Gold badge pulse ───────────────────────────────────────────────────── */
+@keyframes pricePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(201, 168, 76, 0); }
+}
+.price-badge {
+  animation: pricePulse 2.5s ease-in-out infinite;
+}
+
+/* ── Glass card utility ─────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* ── Hero ambient glow ──────────────────────────────────────────────────── */
+.hero-glow::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(ellipse at center, rgba(201, 168, 76, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-enter {
+  animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Admin banner pulse line ────────────────────────────────────────────── */
+@keyframes bannerSlide {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+.banner-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 60%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  animation: bannerSlide 2.5s ease-in-out infinite;
+}

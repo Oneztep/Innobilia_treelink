@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Background dark square -->
+  <rect width="32" height="32" rx="7" fill="#1c1917"/>
+  <!-- Building icon in gold -->
+  <path d="M8 26V12l8-6 8 6v14H8z" fill="none" stroke="#c9a84c" stroke-width="1.8" stroke-linejoin="round"/>
+  <rect x="13" y="19" width="6" height="7" rx="1" fill="#c9a84c" opacity="0.9"/>
+  <rect x="10" y="15" width="3" height="3" rx="0.5" fill="#c9a84c" opacity="0.7"/>
+  <rect x="19" y="15" width="3" height="3" rx="0.5" fill="#c9a84c" opacity="0.7"/>
+  <line x1="16" y1="6" x2="16" y2="9" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

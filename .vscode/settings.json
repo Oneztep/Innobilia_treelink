@@ -1,0 +1,17 @@
+{
+  // Tailwind CSS v4 usa @theme, @layer y otras at-rules propietarias
+  // que el validador de CSS de VS Code no reconoce. Esto las silencia.
+  "css.lint.unknownAtRules": "ignore",
+
+  // Asociar archivos CSS de Tailwind al lenguaje CSS normal
+  // para que IntelliSense funcione correctamente
+  "files.associations": {
+    "*.css": "css"
+  },
+
+  // Si tienes la extensión oficial de Tailwind CSS instalada,
+  // activa el soporte de IntelliSense para clases de Tailwind
+  "editor.quickSuggestions": {
+    "strings": true
+  }
+}

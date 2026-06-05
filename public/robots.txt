@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# No indexar rutas de administración
+Disallow: /?access=
+
+Sitemap: https://innobilia.com/sitemap.xml

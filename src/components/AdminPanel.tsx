@@ -1,0 +1,268 @@
+import React from 'react';
+import { Property, Appointment, AnalyticsSummary } from '../types';
+import { Eye, Share2, Calendar, Sparkles, Phone, Mail, Clock, DollarSign, CalendarDays, RefreshCw, Trash2, Home, Activity } from 'lucide-react';
+
+interface AdminPanelProps {
+  properties: Property[];
+  appointments: Appointment[];
+  analytics: AnalyticsSummary;
+  onDeleteAppointment: (id: string) => void;
+  onResetAnalytics: () => void;
+}
+
+export default function AdminPanel({
+  properties,
+  appointments,
+  analytics,
+  onDeleteAppointment,
+  onResetAnalytics
+}: AdminPanelProps) {
+  
+  // js-combine-iterations + js-min-max-loop:
+  // Single O(n) pass to find top clicked, top shared, maxClicks, maxShares
+  // instead of 2 sorts + 2 Math.max(...spread) calls (4 separate iterations)
+  let topClickedProperty: Property | undefined;
+  let topSharedProperty: Property | undefined;
+  let maxClicks = 1;
+  let maxShares = 1;
+  let maxClicksVal = -1;
+  let maxSharesVal = -1;
+
+  for (const p of properties) {
+    const clicks = analytics.propertyClicks[p.id] || 0;
+    const shares = analytics.propertyShares[p.id] || 0;
+    if (clicks > maxClicksVal) { maxClicksVal = clicks; topClickedProperty = p; }
+    if (shares > maxSharesVal) { maxSharesVal = shares; topSharedProperty = p; }
+    if (clicks > maxClicks) maxClicks = clicks;
+    if (shares > maxShares) maxShares = shares;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Overview Head */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+        <div>
+          <h2 className="font-display text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span className="p-1 px-2.5 rounded-lg bg-amber-500 text-white font-mono text-xs">A</span>
+            <span>Panel de Control de Innobilia</span>
+          </h2>
+          <p className="text-xs text-slate-500 mt-1">
+            Supervisa el rendimiento del Linktree inmobiliario, visitas, clics en tiempo real y gestiona leads de citas.
+          </p>
+        </div>
+        <button
+          onClick={onResetAnalytics}
+          className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 text-xs font-semibold cursor-pointer transition-colors"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          <span>Restablecer Analíticas</span>
+        </button>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-medium">Visitas al Link</span>
+            <Eye className="h-4 w-4 text-slate-400" />
+          </div>
+          <div className="mt-2.5">
+            <h3 className="text-2xl font-bold text-slate-900 font-mono">{analytics.totalVisits}</h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium flex items-center gap-0.5">
+              <Activity className="h-3 w-3 text-emerald-500" />
+              <span>Visitas acumuladas desde el inicio</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-medium">Total Compartidos</span>
+            <Share2 className="h-4 w-4 text-slate-400" />
+          </div>
+          <div className="mt-2.5">
+            <h3 className="text-2xl font-bold text-slate-900 font-mono">{analytics.totalShares}</h3>
+            <p className="text-[10px] text-amber-600 mt-1 font-medium">Canal: WhatsApp, FB y Portapapeles</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-medium">Citas Solicitadas</span>
+            <Calendar className="h-4 w-4 text-slate-400" />
+          </div>
+          <div className="mt-2.5">
+            <h3 className="text-2xl font-bold text-slate-900 font-mono">{appointments.length}</h3>
+            <p className="text-[10px] text-amber-600 mt-1 font-medium">Esperando respuesta del corredor</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-medium">Mayor Interés (clics)</span>
+            <Sparkles className="h-4 w-4 text-amber-500" />
+          </div>
+          <div className="mt-2.5">
+            <h3 className="text-sm font-bold text-slate-800 truncate" title={topClickedProperty?.title || 'N/A'}>
+              {topClickedProperty ? topClickedProperty.title : 'N/A'}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              {topClickedProperty ? `${analytics.propertyClicks[topClickedProperty.id] || 0} clics registrados` : 'Sin registros'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Analytics Interactive Charts Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Properties clicks custom bar chart */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+          <div>
+            <span className="text-[10px] font-mono text-amber-600 uppercase font-bold tracking-wider">Reporte de Interés</span>
+            <h3 className="font-display text-sm font-bold text-slate-800">Clics por Propiedad</h3>
+            <p className="text-xs text-slate-400">Muestra qué propiedades del Linktree han recibido más visitas detalladas.</p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            {properties.map(p => {
+              const clicks = analytics.propertyClicks[p.id] || 0;
+              const percentage = Math.max((clicks / maxClicks) * 100, 4); // minimum 4% for visual bar trace
+              return (
+                <div key={p.id} className="space-y-1">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-medium text-slate-700 truncate max-w-[75%]" title={p.title}>{p.title}</span>
+                    <span className="font-mono font-bold text-slate-900">{clicks} <span className="text-[10px] text-slate-400 font-normal">clics</span></span>
+                  </div>
+                  <div className="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-slate-900 rounded-full transition-all duration-500"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Shares custom bar chart */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+          <div>
+            <span className="text-[10px] font-mono text-emerald-600 uppercase font-bold tracking-wider">Reporte de Difusión</span>
+            <h3 className="font-display text-sm font-bold text-slate-800">Propiedades Compartidas</h3>
+            <p className="text-xs text-slate-400">Registra con qué frecuencia los clientes han copiado o enviado el enlace.</p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            {properties.map(p => {
+              const shares = analytics.propertyShares[p.id] || 0;
+              const percentage = Math.max((shares / maxShares) * 100, 4);
+              return (
+                <div key={p.id} className="space-y-1">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-medium text-slate-700 truncate max-w-[75%]" title={p.title}>{p.title}</span>
+                    <span className="font-mono font-bold text-slate-950">{shares} <span className="text-[10px] text-slate-400 font-normal font-sans">veces</span></span>
+                  </div>
+                  <div className="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-amber-500 rounded-full transition-all duration-500"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Appointment simple leads display list */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="border-b border-slate-100 px-6 py-4 bg-slate-50 flex items-center justify-between">
+          <div>
+            <h3 className="font-display text-sm font-bold text-slate-900">Agenda de Citas Solicitadas</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Control de prospectos, presupuestos e información de contacto.</p>
+          </div>
+          <span className="px-2.5 py-0.5 bg-slate-200 text-slate-700 text-xs rounded-full font-mono font-bold">
+            {appointments.length} Cita(s)
+          </span>
+        </div>
+
+        {appointments.length === 0 ? (
+          <div className="p-8 text-center text-slate-400 text-sm">
+            <CalendarDays className="h-10 w-10 text-slate-300 mx-auto mb-2" />
+            <p>Aún no se han registrado solicitudes de cita de clientes.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {appointments.map((item) => (
+              <div key={item.id} className="p-5 hover:bg-slate-50 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-slate-900 text-sm">
+                      {item.clientName} {item.clientLastName}
+                    </span>
+                    <span className="px-2 py-0.5 bg-amber-50 text-amber-950 text-[10px] font-semibold rounded-md border border-amber-200 flex items-center gap-1 font-mono">
+                      <Home className="h-2.5 w-2.5" />
+                      <span>{item.propertyTitle}</span>
+                    </span>
+                  </div>
+                  
+                  {/* Contact details */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                    <a href={`tel:${item.clientPhone}`} className="flex items-center gap-1 hover:underline text-slate-600">
+                      <Phone className="h-3.5 w-3.5 text-slate-400" />
+                      <span>{item.clientPhone}</span>
+                    </a>
+                    <a href={`mailto:${item.clientEmail}`} className="flex items-center gap-1 hover:underline text-slate-600">
+                      <Mail className="h-3.5 w-3.5 text-slate-400" />
+                      <span>{item.clientEmail}</span>
+                    </a>
+                    <span className="flex items-center gap-1">
+                      <DollarSign className="h-3.5 w-3.5 text-amber-500" />
+                      <span>Presupuesto: <strong>${item.budget.toLocaleString()}</strong></span>
+                    </span>
+                  </div>
+
+                  {item.notes && (
+                    <p className="text-xs text-slate-500 bg-slate-100 p-2 rounded-lg italic max-w-xl mt-1.5 border-l-2 border-slate-300">
+                      &ldquo;{item.notes}&rdquo;
+                    </p>
+                  )}
+                </div>
+
+                {/* Appointment date indicator and action */}
+                <div className="flex sm:items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t md:border-none pt-3 md:pt-0">
+                  <div className="text-left md:text-right">
+                    <div className="flex items-center md:justify-end gap-1 text-slate-800 text-xs font-semibold">
+                      <Calendar className="h-3.5 w-3.5 text-amber-500" />
+                      <span>{item.date}</span>
+                    </div>
+                    <div className="flex items-center md:justify-end gap-1 text-[10px] text-slate-400 mt-0.5">
+                      <Clock className="h-3 w-3" />
+                      <span>{item.time || '10:00 AM'}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (confirm('¿Deseas dar por atendida o borrar la solicitud de esta cita?')) {
+                        onDeleteAppointment(item.id);
+                      }
+                    }}
+                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    title="Eliminar Lead Cita"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
