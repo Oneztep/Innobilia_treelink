@@ -6,7 +6,7 @@ export interface CompanySettings {
   name: string;
   subtitle: string;
   description: string;
-  locations: string;
+  facebookUrl: string;
   instagramUrl: string;
   whatsappUrl: string;
   adminSecret: string;
@@ -17,7 +17,7 @@ interface IdentityModalProps {
   onClose: () => void;
   companySettings: CompanySettings;
   onSave: (settings: CompanySettings) => void;
-  focusField?: 'logoUrl' | 'name' | 'subtitle' | 'description' | 'locations' | 'adminSecret' | 'all';
+  focusField?: 'logoUrl' | 'name' | 'subtitle' | 'description' | 'facebookUrl' | 'adminSecret' | 'all';
   onShowToast: (msg: string) => void;
 }
 
@@ -62,7 +62,7 @@ export default function IdentityModal({
       name: 'INNOBILIA',
       subtitle: 'Asesores',
       description: 'Encuentra tu próximo hogar. Haz clic en cualquiera de nuestras propiedades disponibles para agendar visitas virtuales 3D o citas instantáneas.',
-      locations: 'San Pedro • Lomas • Valle de Bravo',
+      facebookUrl: 'https://facebook.com/innobilia',
       instagramUrl: 'https://instagram.com/innobilia.asesoresinversiones',
       whatsappUrl: 'https://wa.me/5218110000000',
       adminSecret: 'secreto123',
@@ -187,17 +187,17 @@ export default function IdentityModal({
               />
             </div>
 
-            {/* Locations */}
+            {/* Facebook URL */}
             <div className="space-y-1 sm:col-span-2">
               <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase">
-                Ubicaciones / Cobertura
+                URL Facebook
               </label>
               <input
-                type="text"
-                autoFocus={focusField === 'locations'}
-                placeholder="San Pedro • Valle de Bravo • Lomas"
-                value={draft.locations}
-                onChange={(e) => setDraft(prev => ({ ...prev, locations: e.target.value }))}
+                type="url"
+                autoFocus={focusField === 'facebookUrl'}
+                placeholder="https://facebook.com/tupagina"
+                value={draft.facebookUrl ?? ''}
+                onChange={(e) => setDraft(prev => ({ ...prev, facebookUrl: e.target.value }))}
                 className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-700 bg-slate-50 focus:outline-none focus:border-amber-400"
               />
             </div>

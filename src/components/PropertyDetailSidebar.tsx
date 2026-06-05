@@ -22,6 +22,8 @@ export default function PropertyDetailSidebar({
   const [showVirtualTour, setShowVirtualTour] = useState(false);
   const [animKey, setAnimKey] = useState(0);
   const prevPropertyId = useRef<string | null>(null);
+  // Swipe gesture refs (rerender-use-ref-transient-values: transient touch coords)
+  const touchStartX = useRef<number | null>(null);
 
   // Reset carousel when property changes
   useEffect(() => {
@@ -55,6 +57,25 @@ export default function PropertyDetailSidebar({
   const handlePrevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     setActiveImageIndex((prev) => (prev - 1 + property.images.length) % property.images.length);
+    setAnimKey(k => k + 1);
+  };
+
+  // Touch swipe handlers for mobile carousel
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(delta) < 40) return; // ignore tiny taps
+    if (delta < 0) {
+      // swipe left → next image
+      setActiveImageIndex(prev => (prev + 1) % property.images.length);
+    } else {
+      // swipe right → prev image
+      setActiveImageIndex(prev => (prev - 1 + property.images.length) % property.images.length);
+    }
     setAnimKey(k => k + 1);
   };
 
@@ -111,7 +132,11 @@ export default function PropertyDetailSidebar({
         </div>
       ) : (
         /* Sliding Image Carousel */
-        <div className="carousel-container relative aspect-[4/3] w-full bg-slate-900 overflow-hidden">
+        <div
+          className="carousel-container relative aspect-[4/3] w-full bg-slate-900 overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <img
             key={animKey}
             src={property.images[activeImageIndex]}

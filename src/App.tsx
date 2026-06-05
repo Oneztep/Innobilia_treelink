@@ -90,7 +90,7 @@ const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   subtitle: 'Asesores',
   description:
     'Encuentra tu próximo hogar. Haz clic en cualquiera de nuestras propiedades disponibles para agendar visitas virtuales 3D o citas instantáneas.',
-  locations: 'San Pedro • Lomas • Valle de Bravo',
+  facebookUrl: 'https://facebook.com/innobilia',
   instagramUrl: 'https://instagram.com/innobilia.asesoresinversiones',
   whatsappUrl: 'https://wa.me/5218110000000',
   // Blocker 2: use env var — never hardcode secrets in source code
@@ -156,8 +156,13 @@ export default function App() {
   const [waModalProperty, setWaModalProperty] = useState<Property | null>(null);
   const [waModalPhone, setWaModalPhone] = useState<string>('');
   const [identityFocusField, setIdentityFocusField] = useState<
-    'logoUrl' | 'name' | 'subtitle' | 'description' | 'locations' | 'adminSecret' | 'all'
+    'logoUrl' | 'name' | 'subtitle' | 'description' | 'facebookUrl' | 'adminSecret' | 'all'
   >('all');
+
+  // Admin auth modal
+  const [showAdminAuthModal, setShowAdminAuthModal] = useState(false);
+  const [adminAuthInput, setAdminAuthInput] = useState('');
+  const [adminAuthError, setAdminAuthError] = useState(false);
 
   // 5. Confirm modal (replaces window.confirm)
   const [confirmState, setConfirmState] = useState<ConfirmState>(CONFIRM_CLOSED);
@@ -446,8 +451,9 @@ export default function App() {
         {role === 'client' ? (
           <button
             onClick={() => {
-              setRole('admin');
-              showToast('¡Modo Administrador activado!');
+              setAdminAuthInput('');
+              setAdminAuthError(false);
+              setShowAdminAuthModal(true);
             }}
             className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all hover:scale-105 cursor-pointer shadow-sm"
             style={{ background: '#1c1917', color: '#faf7f2' }}
@@ -670,6 +676,20 @@ export default function App() {
                     {WHATSAPP_SVG}
                   </button>
                 ) : null}
+                {companySettings.facebookUrl ? (
+                  <a
+                    href={companySettings.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Síguenos en Facebook" title="Facebook"
+                    className="flex items-center justify-center w-12 h-12 text-white rounded-2xl shadow-md transition-all hover:scale-110 hover:shadow-lg cursor-pointer"
+                    style={{ background: '#1877F2' }}
+                  >
+                    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                  </a>
+                ) : null}
               </div>
             </nav>
           ) : null}
@@ -689,7 +709,11 @@ export default function App() {
           <div className="pt-3 border-t flex justify-center" style={{ borderColor: '#292524' }}>
             {role === 'client' ? (
               <button
-                onClick={() => { setRole('admin'); showToast('¡Portal administrativo activado!'); }}
+                onClick={() => {
+                  setAdminAuthInput('');
+                  setAdminAuthError(false);
+                  setShowAdminAuthModal(true);
+                }}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-mono font-bold transition-colors cursor-pointer"
                 style={{ background: 'rgba(201,168,76,0.05)', borderColor: 'rgba(201,168,76,0.2)', color: '#78716c' }}
               >
@@ -811,6 +835,102 @@ export default function App() {
           targetPhone={waModalPhone}
           brokerName="Iraida"
         />
+
+        {/* Admin Authentication Modal */}
+        {showAdminAuthModal ? (
+          <div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-auth-modal-title"
+          >
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm"
+              onClick={() => setShowAdminAuthModal(false)}
+            />
+            <div className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border flex flex-col animate-in slide-in-from-bottom duration-300"
+              style={{ background: '#1c1917', borderColor: '#44403c' }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: '#292524' }}>
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg" style={{ background: '#292524' }}>
+                    <Lock className="h-4 w-4" style={{ color: '#c9a84c' }} />
+                  </div>
+                  <div>
+                    <h3 id="admin-auth-modal-title" className="text-sm font-bold" style={{ color: '#faf7f2' }}>
+                      Acceso Administrativo
+                    </h3>
+                    <p className="text-[10px] font-mono" style={{ color: '#78716c' }}>Solo para asesores autorizados</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAdminAuthModal(false)}
+                  className="p-1.5 rounded-lg transition-colors cursor-pointer"
+                  style={{ color: '#78716c' }}
+                  aria-label="Cerrar"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="px-5 py-5 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#a8a29e' }}>
+                    Clave de Acceso
+                  </label>
+                  <input
+                    type="password"
+                    autoFocus
+                    placeholder="Ingresa tu clave secreta..."
+                    value={adminAuthInput}
+                    onChange={(e) => { setAdminAuthInput(e.target.value); setAdminAuthError(false); }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (adminAuthInput === companySettings.adminSecret) {
+                          setRole('admin');
+                          setShowAdminAuthModal(false);
+                          showToast('¡Bienvenido! Modo Administrador activado.');
+                        } else {
+                          setAdminAuthError(true);
+                        }
+                      }
+                    }}
+                    className="w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none font-mono"
+                    style={{
+                      background: '#292524',
+                      borderColor: adminAuthError ? '#ef4444' : '#44403c',
+                      color: '#faf7f2',
+                    }}
+                  />
+                  {adminAuthError ? (
+                    <p className="text-[11px] font-semibold" style={{ color: '#ef4444' }}>
+                      Clave incorrecta. Inténtalo de nuevo.
+                    </p>
+                  ) : null}
+                </div>
+
+                <button
+                  onClick={() => {
+                    if (adminAuthInput === companySettings.adminSecret) {
+                      setRole('admin');
+                      setShowAdminAuthModal(false);
+                      showToast('¡Bienvenido! Modo Administrador activado.');
+                    } else {
+                      setAdminAuthError(true);
+                    }
+                  }}
+                  className="w-full py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 cursor-pointer"
+                  style={{ background: '#c9a84c', color: '#1c1917' }}
+                >
+                  Ingresar al Panel
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
       </Suspense>
     </div>

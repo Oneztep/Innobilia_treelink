@@ -63,7 +63,7 @@ export default function AdminConsole({
       name: 'INNOBILIA',
       subtitle: 'Asesores',
       description: 'Encuentra tu próximo hogar. Haz clic en cualquiera de nuestras propiedades disponibles para agendar visitas virtuales 3D o citas instantáneas.',
-      locations: 'San Pedro • Lomas • Valle de Bravo',
+      facebookUrl: 'https://facebook.com/innobilia',
       instagramUrl: 'https://instagram.com/innobilia.asesoresinversiones',
       whatsappUrl: 'https://wa.me/5218110000000',
       // Blocker 2: use env var default, not hardcoded string
@@ -243,14 +243,14 @@ export default function AdminConsole({
             </div>
           </div>
 
-          {/* Locations */}
+          {/* Facebook URL */}
           <div className="space-y-1">
-            <label className="block text-[10px] font-mono text-slate-300 font-bold uppercase">Ubicaciones / Cobertura</label>
+            <label className="block text-[10px] font-mono text-slate-300 font-bold uppercase">Enlace de Facebook</label>
             <input
-              type="text"
-              placeholder="San Pedro • Lomas • Valle de Bravo"
-              value={companySettings.locations || ''}
-              onChange={(e) => onSaveSettings({ ...companySettings, locations: e.target.value })}
+              type="url"
+              placeholder="https://facebook.com/tupagina"
+              value={companySettings.facebookUrl || ''}
+              onChange={(e) => onSaveSettings({ ...companySettings, facebookUrl: e.target.value })}
               className="w-full rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 font-sans"
             />
           </div>
