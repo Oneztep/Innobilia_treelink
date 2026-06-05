@@ -194,22 +194,31 @@ export default function App() {
       try {
         // 1. Fetch properties
         const dbProperties = await fetchProperties();
-        if (dbProperties) {
+        if (dbProperties && dbProperties.length > 0) {
+          // Supabase has data — use it
           setProperties(dbProperties);
-        } else if (properties.length === 0) {
+        } else {
+          // Supabase table is empty — use initial demo data and seed DB for the first time
           setProperties(INITIAL_PROPERTIES);
+          for (const prop of INITIAL_PROPERTIES) {
+            await upsertProperty(prop);
+          }
         }
 
         // 2. Fetch appointments
         const dbAppointments = await fetchAppointments();
-        if (dbAppointments) {
+        if (dbAppointments && dbAppointments.length > 0) {
           setAppointments(dbAppointments);
         }
 
         // 3. Fetch company settings
         const dbSettings = await fetchCompanySettings();
-        if (dbSettings) {
+        if (dbSettings && dbSettings.name) {
+          // Supabase has settings — merge with defaults
           setCompanySettings(prev => ({ ...prev, ...dbSettings }));
+        } else {
+          // First time: seed default settings into Supabase
+          await upsertCompanySettings(DEFAULT_COMPANY_SETTINGS);
         }
 
         // 4. Fetch analytics and increment visit counter
