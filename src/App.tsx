@@ -5,6 +5,22 @@ import { INITIAL_PROPERTIES, INITIAL_APPOINTMENTS } from './initialData';
 // Storage helper (js-cache-storage + advanced-init-once: migration runs at module load)
 import { lsGet, lsSet } from './lib/storage';
 
+// Supabase DB operations
+import {
+  fetchProperties,
+  upsertProperty,
+  deleteProperty,
+  incrementPropertyClicks,
+  incrementPropertyShares,
+  fetchAppointments,
+  insertAppointment,
+  deleteAppointment,
+  fetchAnalytics,
+  upsertAnalytics,
+  fetchCompanySettings,
+  upsertCompanySettings,
+} from './lib/db';
+
 // Eagerly-loaded small components
 import PropertyDetailSidebar from './components/PropertyDetailSidebar';
 import ConfirmModal from './components/ConfirmModal';
@@ -172,13 +188,58 @@ export default function App() {
 
   // ─── Persistence effects ───────────────────────────────────────────────────
 
-  // Increment page view count once per app initialization
+  // Load and sync data from Supabase on mount
   useEffect(() => {
-    setAnalytics(prev => {
-      const updated = { ...prev, totalVisits: prev.totalVisits + 1 };
-      lsSet('innobilia_analytics', updated);
-      return updated;
-    });
+    async function loadData() {
+      try {
+        // 1. Fetch properties
+        const dbProperties = await fetchProperties();
+        if (dbProperties) {
+          setProperties(dbProperties);
+        } else if (properties.length === 0) {
+          setProperties(INITIAL_PROPERTIES);
+        }
+
+        // 2. Fetch appointments
+        const dbAppointments = await fetchAppointments();
+        if (dbAppointments) {
+          setAppointments(dbAppointments);
+        }
+
+        // 3. Fetch company settings
+        const dbSettings = await fetchCompanySettings();
+        if (dbSettings) {
+          setCompanySettings(prev => ({ ...prev, ...dbSettings }));
+        }
+
+        // 4. Fetch analytics and increment visit counter
+        const dbAnalytics = await fetchAnalytics();
+        const currentAnalytics: AnalyticsSummary = dbAnalytics || {
+          totalVisits: 0,
+          totalShares: 0,
+          propertyClicks: {},
+          propertyShares: {},
+        };
+
+        const updatedAnalytics = {
+          ...currentAnalytics,
+          totalVisits: (currentAnalytics.totalVisits || 0) + 1,
+        };
+        setAnalytics(updatedAnalytics);
+        lsSet('innobilia_analytics', updatedAnalytics);
+        await upsertAnalytics(updatedAnalytics);
+      } catch (err) {
+        console.warn('[innobilia] Error syncing with Supabase:', err);
+      }
+    }
+
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSaveCompanySettings = useCallback((newSettings: CompanySettings) => {
+    setCompanySettings(newSettings);
+    upsertCompanySettings(newSettings);
   }, []);
 
   // Persist state changes — using lsSet (js-cache-storage)
@@ -235,17 +296,15 @@ export default function App() {
     newPropertyData: Omit<Property, 'clicks' | 'shares' | 'createdAt'> & { id?: string }
   ) => {
     if (newPropertyData.id) {
-      setProperties(prev =>
-        prev.map(p => {
-          if (p.id === newPropertyData.id) {
-            const updated = { ...p, ...newPropertyData };
-            if (selectedProperty?.id === p.id) setSelectedProperty(updated);
-            return updated;
-          }
-          return p;
-        })
-      );
-      showToast('Propiedad actualizada con éxito.');
+      const existing = properties.find(p => p.id === newPropertyData.id);
+      if (existing) {
+        const updated = { ...existing, ...newPropertyData };
+        setProperties(prev => prev.map(p => p.id === newPropertyData.id ? updated : p));
+        if (selectedProperty?.id === existing.id) setSelectedProperty(updated);
+        showToast('Propiedad actualizada con éxito.');
+        // Async save to Supabase
+        upsertProperty(updated);
+      }
     } else {
       const freshProperty: Property = {
         ...newPropertyData,
@@ -257,6 +316,8 @@ export default function App() {
       setProperties(prev => [freshProperty, ...prev]);
       setSelectedProperty(freshProperty);
       showToast('Nueva propiedad publicada en el Linktree.');
+      // Async save to Supabase
+      upsertProperty(freshProperty);
     }
     setEditingProperty(null);
   };
@@ -275,6 +336,8 @@ export default function App() {
         }
         showToast('Inmueble eliminado con éxito.');
         closeConfirm();
+        // Delete from Supabase
+        deleteProperty(id);
       },
     });
   };
@@ -283,21 +346,31 @@ export default function App() {
 
   // useCallback: rerender-functional-setstate + stable ref for PropertyCard memo
   const handleRegisterClick = useCallback((propertyId: string) => {
+    let updated: AnalyticsSummary | null = null;
     setAnalytics(prev => {
       const propClicks = { ...prev.propertyClicks, [propertyId]: (prev.propertyClicks[propertyId] || 0) + 1 };
-      const updated = { ...prev, propertyClicks: propClicks };
+      updated = { ...prev, propertyClicks: propClicks };
       lsSet('innobilia_analytics', updated);
       return updated;
     });
+    if (updated) {
+      upsertAnalytics(updated);
+    }
+    incrementPropertyClicks(propertyId);
   }, []);
 
   const handleRegisterShare = useCallback((propertyId: string) => {
+    let updated: AnalyticsSummary | null = null;
     setAnalytics(prev => {
       const propShares = { ...prev.propertyShares, [propertyId]: (prev.propertyShares[propertyId] || 0) + 1 };
-      const updated = { ...prev, totalShares: prev.totalShares + 1, propertyShares: propShares };
+      updated = { ...prev, totalShares: prev.totalShares + 1, propertyShares: propShares };
       lsSet('innobilia_analytics', updated);
       return updated;
     });
+    if (updated) {
+      upsertAnalytics(updated);
+    }
+    incrementPropertyShares(propertyId);
     showToast('Enlace de la propiedad marcado como compartido.');
   }, [showToast]);
 
@@ -313,6 +386,8 @@ export default function App() {
         lsSet('innobilia_analytics', reset);
         showToast('Contadores de analíticas restablecidos a cero.');
         closeConfirm();
+        // Reset in Supabase
+        upsertAnalytics(reset);
       },
     });
   }, [showToast]);
@@ -335,6 +410,8 @@ export default function App() {
     };
     setAppointments(prev => [newAppointment, ...prev]);
     showToast('¡Cita solicitada! Revisar en el Panel de Administración.');
+    // Insert into Supabase
+    insertAppointment(newAppointment);
   };
 
   const handleDeleteAppointment = (id: string) => {
@@ -347,6 +424,8 @@ export default function App() {
         setAppointments(prev => prev.filter(app => app.id !== id));
         showToast('Cita atendida/eliminada de la agenda.');
         closeConfirm();
+        // Delete from Supabase
+        deleteAppointment(id);
       },
     });
   };
@@ -579,7 +658,7 @@ export default function App() {
           {role === 'admin' && (
             <AdminConsole
               companySettings={companySettings}
-              onSaveSettings={setCompanySettings}
+              onSaveSettings={handleSaveCompanySettings}
               properties={properties}
               appointments={appointments}
               analytics={analytics}
@@ -811,7 +890,7 @@ export default function App() {
           isOpen={showIdentityModal}
           onClose={() => setShowIdentityModal(false)}
           companySettings={companySettings}
-          onSave={setCompanySettings}
+          onSave={handleSaveCompanySettings}
           focusField={identityFocusField}
           onShowToast={showToast}
         />
