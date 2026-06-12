@@ -10,7 +10,7 @@
  *   camelCase → DB row via toPropertyRow() / toAppointmentRow()
  */
 
-import { supabase } from './supabase';
+import { supabase, OFFLINE_MODE } from './supabase';
 import type { Property, Appointment, AnalyticsSummary } from '../types';
 import type { CompanySettings } from '../components/IdentityModal';
 
@@ -97,6 +97,7 @@ function toAppointmentRow(a: Appointment) {
 // ─── Properties ───────────────────────────────────────────────────────────────
 
 export async function fetchProperties(): Promise<Property[] | null> {
+  if (OFFLINE_MODE) return null;
   const { data, error } = await supabase
     .from('properties')
     .select('*')
@@ -110,6 +111,7 @@ export async function fetchProperties(): Promise<Property[] | null> {
 }
 
 export async function upsertProperty(property: Property): Promise<boolean> {
+  if (OFFLINE_MODE) return false;
   const { error } = await supabase
     .from('properties')
     .upsert(toPropertyRow(property), { onConflict: 'id' });
@@ -122,6 +124,7 @@ export async function upsertProperty(property: Property): Promise<boolean> {
 }
 
 export async function deleteProperty(id: string): Promise<boolean> {
+  if (OFFLINE_MODE) return false;
   const { error } = await supabase
     .from('properties')
     .delete()
@@ -136,6 +139,7 @@ export async function deleteProperty(id: string): Promise<boolean> {
 
 /** Increment clicks counter for a property (fire-and-forget) */
 export async function incrementPropertyClicks(propertyId: string): Promise<void> {
+  if (OFFLINE_MODE) return;
   // Use rpc for atomic increment to avoid race conditions
   const { error } = await supabase.rpc('increment_property_clicks', {
     prop_id: propertyId,
@@ -158,6 +162,7 @@ export async function incrementPropertyClicks(propertyId: string): Promise<void>
 
 /** Increment shares counter for a property (fire-and-forget) */
 export async function incrementPropertyShares(propertyId: string): Promise<void> {
+  if (OFFLINE_MODE) return;
   const { data } = await supabase
     .from('properties')
     .select('shares')
@@ -174,6 +179,7 @@ export async function incrementPropertyShares(propertyId: string): Promise<void>
 // ─── Appointments ─────────────────────────────────────────────────────────────
 
 export async function fetchAppointments(): Promise<Appointment[] | null> {
+  if (OFFLINE_MODE) return null;
   const { data, error } = await supabase
     .from('appointments')
     .select('*')
@@ -187,6 +193,7 @@ export async function fetchAppointments(): Promise<Appointment[] | null> {
 }
 
 export async function insertAppointment(appointment: Appointment): Promise<boolean> {
+  if (OFFLINE_MODE) return false;
   const { error } = await supabase
     .from('appointments')
     .insert(toAppointmentRow(appointment));
@@ -199,6 +206,7 @@ export async function insertAppointment(appointment: Appointment): Promise<boole
 }
 
 export async function deleteAppointment(id: string): Promise<boolean> {
+  if (OFFLINE_MODE) return false;
   const { error } = await supabase
     .from('appointments')
     .delete()
@@ -214,6 +222,7 @@ export async function deleteAppointment(id: string): Promise<boolean> {
 // ─── Analytics ────────────────────────────────────────────────────────────────
 
 export async function fetchAnalytics(): Promise<AnalyticsSummary | null> {
+  if (OFFLINE_MODE) return null;
   const { data, error } = await supabase
     .from('analytics')
     .select('*')
@@ -234,6 +243,7 @@ export async function fetchAnalytics(): Promise<AnalyticsSummary | null> {
 }
 
 export async function upsertAnalytics(analytics: AnalyticsSummary): Promise<boolean> {
+  if (OFFLINE_MODE) return false;
   const { error } = await supabase
     .from('analytics')
     .upsert({
@@ -254,6 +264,7 @@ export async function upsertAnalytics(analytics: AnalyticsSummary): Promise<bool
 
 /** Increment WhatsApp lead counter in analytics (fire-and-forget) */
 export async function incrementWhatsAppLeads(): Promise<void> {
+  if (OFFLINE_MODE) return;
   const { data } = await supabase
     .from('analytics')
     .select('whatsapp_leads')
@@ -272,6 +283,7 @@ export async function incrementWhatsAppLeads(): Promise<void> {
 // ─── Company Settings ─────────────────────────────────────────────────────────
 
 export async function fetchCompanySettings(): Promise<CompanySettings | null> {
+  if (OFFLINE_MODE) return null;
   const { data, error } = await supabase
     .from('company_settings')
     .select('*')
@@ -296,6 +308,7 @@ export async function fetchCompanySettings(): Promise<CompanySettings | null> {
 }
 
 export async function upsertCompanySettings(settings: CompanySettings): Promise<boolean> {
+  if (OFFLINE_MODE) return false;
   const { error } = await supabase
     .from('company_settings')
     .upsert({
