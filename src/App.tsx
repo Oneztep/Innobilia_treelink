@@ -58,19 +58,19 @@ import {
 const HERO_GLOW_TOP = (
   <div
     className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full pointer-events-none"
-    style={{ background: 'radial-gradient(ellipse, rgba(201,168,76,0.10) 0%, transparent 70%)' }}
+    style={{ background: 'radial-gradient(ellipse, rgba(255,185,0,0.09) 0%, transparent 70%)' }}
   />
 );
 const HERO_GLOW_BOTTOM = (
   <div
     className="absolute bottom-0 right-0 w-48 h-48 rounded-full pointer-events-none"
-    style={{ background: 'radial-gradient(ellipse, rgba(201,168,76,0.06) 0%, transparent 70%)' }}
+    style={{ background: 'radial-gradient(ellipse, rgba(255,185,0,0.05) 0%, transparent 70%)' }}
   />
 );
 const GOLD_DIVIDER = (
   <div
     className="my-4 h-px w-16"
-    style={{ background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)' }}
+    style={{ background: 'linear-gradient(90deg, transparent, #ffb900, transparent)' }}
   />
 );
 const WHATSAPP_SVG = (
@@ -514,28 +514,28 @@ export default function App() {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen flex flex-col antialiased" style={{ backgroundColor: '#fdfcf9ff' }}>
+    <div className="min-h-screen flex flex-col antialiased" style={{ backgroundColor: '#f8fafc' }}>
 
       {/* Toast notification */}
       {toastMessage !== null ? (
         <div className="toast-enter fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold border"
-          style={{ background: '#1c1917', borderColor: '#44403c', color: '#faf7f2' }}>
-          <Check className="h-4 w-4" style={{ color: '#c9a84c' }} />
+          style={{ background: '#0f172b', borderColor: '#1e293b', color: '#f8fafc' }}>
+          <Check className="h-4 w-4" style={{ color: '#ffb900' }} />
           <span>{toastMessage}</span>
         </div>
       ) : null}
 
       {/* Nav Header — luxury dark */}
       <header className="sticky top-0 z-40 backdrop-blur-md-custom border-b px-4 sm:px-6 py-3 flex items-center justify-between"
-        style={{ background: 'rgba(249,246,241,0.88)', borderColor: '#e7e0d4' }}>
+        style={{ background: 'rgba(248,250,252,0.92)', borderColor: '#e2e8f0' }}>
         <div className="flex items-center gap-2.5">
           <div className="px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm"
-            style={{ background: '#1c1917', color: '#faf7f2' }}>
-            <Building2 className="h-4 w-4" style={{ color: '#c9a84c' }} />
+            style={{ background: '#0f172b', color: '#f8fafc' }}>
+            <Building2 className="h-4 w-4" style={{ color: '#ffb900' }} />
             <span className="font-display font-bold text-sm tracking-wide">Innobilia</span>
           </div>
-          <span className=" py-1.5 hidden sm:inline-block text-[10px] uppercase tracking-widest font-mono px-2 py-0.5 rounded-full font-bold border"
-            style={{ background: 'rgba(201,168,76,0.1)', color: '#8a6d2f', borderColor: 'rgba(201,168,76,0.3)' }}>
+          <span className="hidden sm:inline-block text-[10px] uppercase tracking-widest font-mono px-2 py-0.5 rounded-full font-bold border"
+            style={{ background: 'rgba(255,185,0,0.1)', color: '#cc9a00', borderColor: 'rgba(255,185,0,0.3)' }}>
             Real Estate
           </span>
         </div>
@@ -547,24 +547,24 @@ export default function App() {
               setAdminAuthError(false);
               setShowAdminAuthModal(true);
             }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all hover:scale-105 cursor-pointer shadow-sm"
-            style={{ background: '#1c1917', color: '#faf7f2' }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all hover:opacity-90 cursor-pointer shadow-sm"
+            style={{ background: '#0f172b', color: '#f8fafc' }}
           >
-            <Lock className="h-3.5 w-3.5" style={{ color: '#c9a84c' }} />
+            <Lock className="h-3.5 w-3.5" style={{ color: '#ffb900' }} />
             <span>Acceso Asesores</span>
           </button>
         ) : (
           <div className="flex items-center gap-1 p-1 rounded-xl border"
-            style={{ background: '#f0ead8', borderColor: '#d6cfc4' }}>
+            style={{ background: '#f1f5f9', borderColor: '#e2e8f0' }}>
             <button
               onClick={() => { setRole('client'); showToast('Has regresado a la vista de cliente.'); }}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm"
-              style={{ background: '#faf7f2', color: '#1c1917' }}
+              style={{ background: '#fff', color: '#0f172b' }}
             >
               Cerrar sesión
             </button>
             <span className="px-2 py-1 rounded-lg text-[10px] font-mono font-bold"
-              style={{ background: '#1c1917', color: '#c9a84c' }}>
+              style={{ background: '#0f172b', color: '#ffb900' }}>
               ADMIN
             </span>
           </div>
@@ -574,7 +574,7 @@ export default function App() {
       {/* Admin mode banner */}
       {role === 'admin' ? (
         <div className="relative overflow-hidden banner-shine text-xs px-4 py-2 text-center font-bold tracking-wide flex items-center justify-center gap-1.5 select-none font-mono"
-          style={{ background: '#fe9a00', color: '#1c1917' }}>
+          style={{ background: '#fe9a00', color: '#0f172b' }}>
           <Unlock className="h-3.5 w-3.5 shrink-0 animate-pulse" />
           <span>Mesa de Control Activa — Modo Administrador</span>
         </div>
@@ -584,9 +584,9 @@ export default function App() {
       <main className="flex-1 w-full max-w-3xl mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-5">
 
-          {/* Identity Hero Card — luxury editorial style */}
+          {/* Identity Hero Card */}
           <div className="hero-glow relative overflow-hidden rounded-2xl border flex flex-col items-center text-center py-10 px-6 sm:px-10"
-            style={{ background: 'linear-gradient(160deg, #faf7f2 0%, #f0ead8 100%)', borderColor: '#e7e0d4' }}>
+            style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 100%)', borderColor: '#e2e8f0' }}>
 
             {/* rendering-hoist-jsx: static decorative elements hoisted to module scope */}
             {HERO_GLOW_TOP}
@@ -596,25 +596,25 @@ export default function App() {
             <div className="relative mb-5">
               {companySettings.logoUrl ? (
                 <div className="relative h-24 w-24 rounded-full overflow-hidden flex items-center justify-center"
-                  style={{ boxShadow: '0 0 0 3px #c9a84c, 0 8px 32px rgba(201,168,76,0.2)', background: '#f0ead8' }}>
+                  style={{ boxShadow: '0 0 0 3px #ffb900, 0 8px 32px rgba(255,185,0,0.18)', background: '#f1f5f9' }}>
                   <img src={companySettings.logoUrl} alt="Logo Empresa" className="h-full w-full object-cover"
                     referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   {role === 'admin' ? (
                     <button onClick={() => { setIdentityFocusField('logoUrl'); setShowIdentityModal(true); }}
                       className="absolute bottom-0 right-0 p-1.5 rounded-full shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                      style={{ background: '#1c1917', border: '1px solid #44403c' }} title="Editar foto">
-                      <Edit className="h-3 w-3" style={{ color: '#c9a84c' }} />
+                      style={{ background: '#0f172b', border: '1px solid #1e293b' }} title="Editar foto">
+                      <Edit className="h-3 w-3" style={{ color: '#ffb900' }} />
                     </button>
                   ) : null}
                 </div>
               ) : (
                 <div className="relative p-5 rounded-2xl flex items-center justify-center"
-                  style={{ background: '#1c1917', boxShadow: '0 0 0 3px rgba(201,168,76,0.4), 0 8px 24px rgba(28,25,23,0.2)' }}>
-                  <Building2 className="h-9 w-9" style={{ color: '#c9a84c' }} />
+                  style={{ background: '#0f172b', boxShadow: '0 0 0 3px rgba(255,185,0,0.4), 0 8px 24px rgba(15,23,43,0.25)' }}>
+                  <Building2 className="h-9 w-9" style={{ color: '#ffb900' }} />
                   {role === 'admin' ? (
                     <button onClick={() => { setIdentityFocusField('logoUrl'); setShowIdentityModal(true); }}
                       className="absolute -bottom-1.5 -right-1.5 p-1.5 rounded-full shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                      style={{ background: '#c9a84c', color: '#1c1917' }} title="Subir foto">
+                      style={{ background: '#ffb900', color: '#0f172b' }} title="Subir foto">
                       <Edit className="h-3 w-3" />
                     </button>
                   ) : null}
@@ -624,15 +624,15 @@ export default function App() {
 
             {/* Brand title — Playfair Display */}
             <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight flex items-center justify-center gap-2.5"
-              style={{ color: '#1c1917' }}>
+              style={{ color: '#0f172b' }}>
               <span>{companySettings.name || 'INNOBILIA'}</span>
-              <span className="font-display italic text-base sm:text-lg font-normal" style={{ color: '#c9a84c' }}>
+              <span className="font-display italic text-base sm:text-lg font-normal" style={{ color: '#ffb900' }}>
                 {companySettings.subtitle || 'Asesores'}
               </span>
               {role === 'admin' ? (
                 <button onClick={() => { setIdentityFocusField('name'); setShowIdentityModal(true); }}
                   className="p-1 rounded-lg transition-colors cursor-pointer opacity-60 hover:opacity-100"
-                  style={{ color: '#8a6d2f' }} title="Editar nombre">
+                  style={{ color: '#cc9a00' }} title="Editar nombre">
                   <Edit className="h-3.5 w-3.5" />
                 </button>
               ) : null}
@@ -642,29 +642,16 @@ export default function App() {
             {GOLD_DIVIDER}
 
             <div className="flex items-center justify-center gap-1.5 max-w-sm">
-              <p className="text-sm leading-relaxed" style={{ color: '#78716c' }}>{companySettings.description}</p>
+              <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>{companySettings.description}</p>
               {role === 'admin' ? (
                 <button onClick={() => { setIdentityFocusField('description'); setShowIdentityModal(true); }}
                   className="shrink-0 p-1 rounded-lg opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-                  style={{ color: '#8a6d2f' }}>
+                  style={{ color: '#cc9a00' }}>
                   <Edit className="h-3.5 w-3.5" />
                 </button>
               ) : null}
             </div>
 
-            {/* <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <span className="text-[11px] px-3 py-1 rounded-full border font-medium flex items-center gap-1"
-                style={{ background: 'rgba(201,168,76,0.08)', borderColor: 'rgba(201,168,76,0.25)', color: '#8a6d2f' }}>
-                📍 {companySettings.locations || 'San Pedro • Lomas • Valle de Bravo'}
-              </span> 
-              {role === 'admin' ? (
-                <button onClick={() => { setIdentityFocusField('locations'); setShowIdentityModal(true); }}
-                  className="p-1 rounded-lg opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-                  style={{ color: '#8a6d2f' }}>
-                  <Edit className="h-3.5 w-3.5" />
-                </button>
-              ) : null}
-            </div> */}
           </div>
 
           {/* Admin Console (only visible in admin mode) */}
@@ -712,8 +699,8 @@ export default function App() {
 
             {filteredProperties.length === 0 ? (
               <div className="text-center p-10 rounded-2xl border"
-                style={{ background: 'rgba(250,247,242,0.8)', borderColor: '#e7e0d4', color: '#a8a29e' }}>
-                <Info className="h-8 w-8 mx-auto mb-3" style={{ color: '#d6cfc4' }} />
+                style={{ background: 'rgba(248,250,252,0.9)', borderColor: '#e2e8f0', color: '#94a3b8' }}>
+                <Info className="h-8 w-8 mx-auto mb-3" style={{ color: '#cbd5e1' }} />
                 <p className="text-sm">No se encontraron propiedades con los parámetros buscados.</p>
               </div>
             ) : (
@@ -741,8 +728,8 @@ export default function App() {
           {/* Social media contact — luxury style */}
           {role === 'client' ? (
             <nav aria-label="Canales Oficiales de Contacto" className="pt-6 border-t space-y-3"
-              style={{ borderColor: '#e7e0d4' }}>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-center" style={{ color: '#a8a29e' }}>
+              style={{ borderColor: '#e2e8f0' }}>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-center" style={{ color: '#94a3b8' }}>
                 Canales Oficiales
               </p>
               <div className="flex items-center justify-center gap-3">
@@ -790,15 +777,15 @@ export default function App() {
 
       {/* Footer — dark luxury */}
       <footer className="border-t py-8 text-center text-xs mt-auto"
-        style={{ background: '#1c1917', borderColor: '#292524' }}>
+        style={{ background: '#0f172b', borderColor: '#1e293b' }}>
         <div className="max-w-3xl mx-auto px-4 space-y-2">
-          <p className="font-display text-base font-semibold" style={{ color: '#e2c37a' }}>
+          <p className="font-display text-base font-semibold" style={{ color: '#ffb900' }}>
             Innobilia
           </p>
-          <p className="text-[10px] font-mono tracking-wider" style={{ color: '#78716c' }}>
+          <p className="text-[10px] font-mono tracking-wider" style={{ color: '#475569' }}>
             Real Estate Hub © 2026 — Todos los derechos reservados
           </p>
-          <div className="pt-3 border-t flex justify-center" style={{ borderColor: '#292524' }}>
+          <div className="pt-3 border-t flex justify-center" style={{ borderColor: '#1e293b' }}>
             {role === 'client' ? (
               <button
                 onClick={() => {
@@ -807,16 +794,16 @@ export default function App() {
                   setShowAdminAuthModal(true);
                 }}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-mono font-bold transition-colors cursor-pointer"
-                style={{ background: 'rgba(201,168,76,0.05)', borderColor: 'rgba(201,168,76,0.2)', color: '#78716c' }}
+                style={{ background: 'rgba(255,185,0,0.06)', borderColor: 'rgba(255,185,0,0.2)', color: '#64748b' }}
               >
-                <Lock className="h-3 w-3" style={{ color: '#44403c' }} />
+                <Lock className="h-3 w-3" style={{ color: '#334155' }} />
                 Acceso Agentes
               </button>
             ) : (
               <button
                 onClick={() => { setRole('client'); showToast('Cerraste sesión de administrador'); }}
                 className="text-[10px] font-mono transition-colors cursor-pointer hover:opacity-80"
-                style={{ color: '#78716c' }}
+                style={{ color: '#475569' }}
               >
                 Cerrar sesión administrativa
               </button>
@@ -943,25 +930,25 @@ export default function App() {
               onClick={() => setShowAdminAuthModal(false)}
             />
             <div className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border flex flex-col animate-in slide-in-from-bottom duration-300"
-              style={{ background: '#1c1917', borderColor: '#44403c' }}
+              style={{ background: '#0f172b', borderColor: '#1e293b' }}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: '#292524' }}>
+              <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: '#1e293b' }}>
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg" style={{ background: '#292524' }}>
-                    <Lock className="h-4 w-4" style={{ color: '#c9a84c' }} />
+                  <div className="p-1.5 rounded-lg" style={{ background: '#1e293b' }}>
+                    <Lock className="h-4 w-4" style={{ color: '#ffb900' }} />
                   </div>
                   <div>
-                    <h3 id="admin-auth-modal-title" className="text-sm font-bold" style={{ color: '#faf7f2' }}>
+                    <h3 id="admin-auth-modal-title" className="text-sm font-bold" style={{ color: '#f8fafc' }}>
                       Acceso Administrativo
                     </h3>
-                    <p className="text-[10px] font-mono" style={{ color: '#78716c' }}>Solo para asesores autorizados</p>
+                    <p className="text-[10px] font-mono" style={{ color: '#475569' }}>Solo para asesores autorizados</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowAdminAuthModal(false)}
                   className="p-1.5 rounded-lg transition-colors cursor-pointer"
-                  style={{ color: '#78716c' }}
+                  style={{ color: '#475569' }}
                   aria-label="Cerrar"
                 >
                   <X className="h-4 w-4" />
@@ -971,7 +958,7 @@ export default function App() {
               {/* Body */}
               <div className="px-5 py-5 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#a8a29e' }}>
+                  <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#64748b' }}>
                     Clave de Acceso
                   </label>
                   <div className="relative">
@@ -994,16 +981,16 @@ export default function App() {
                       }}
                       className="w-full rounded-xl border px-4 py-2.5 pr-11 text-sm focus:outline-none font-mono"
                       style={{
-                        background: '#292524',
-                        borderColor: adminAuthError ? '#ef4444' : '#44403c',
-                        color: '#faf7f2',
+                        background: '#1e293b',
+                        borderColor: adminAuthError ? '#ef4444' : '#334155',
+                        color: '#f8fafc',
                       }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowAdminPassword(prev => !prev)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors cursor-pointer"
-                      style={{ color: showAdminPassword ? '#c9a84c' : '#78716c' }}
+                      style={{ color: showAdminPassword ? '#ffb900' : '#475569' }}
                       aria-label={showAdminPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                     >
                       {showAdminPassword
@@ -1029,7 +1016,7 @@ export default function App() {
                     }
                   }}
                   className="w-full py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 cursor-pointer"
-                  style={{ background: '#c9a84c', color: '#1c1917' }}
+                  style={{ background: '#ffb900', color: '#0f172b' }}
                 >
                   Ingresar al Panel
                 </button>

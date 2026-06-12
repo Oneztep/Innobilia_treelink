@@ -67,9 +67,9 @@ export default function AdminPanel({
             <Eye className="h-4 w-4 text-slate-400" />
           </div>
           <div className="mt-2.5">
-            <h3 className="text-2xl font-bold text-slate-900 font-mono">{analytics.totalVisits}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium flex items-center gap-0.5">
-              <Activity className="h-3 w-3 text-emerald-500" />
+            <h3 className="text-2xl font-bold font-mono" style={{ color: '#0f172b' }}>{analytics.totalVisits}</h3>
+            <p className="text-[10px] mt-1 font-medium flex items-center gap-0.5" style={{ color: '#94a3b8' }}>
+              <Activity className="h-3 w-3" style={{ color: '#ffb900' }} />
               <span>Visitas acumuladas desde el inicio</span>
             </p>
           </div>
@@ -134,10 +134,10 @@ export default function AdminPanel({
                     <span className="font-medium text-slate-700 truncate max-w-[75%]" title={p.title}>{p.title}</span>
                     <span className="font-mono font-bold text-slate-900">{clicks} <span className="text-[10px] text-slate-400 font-normal">clics</span></span>
                   </div>
-                  <div className="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="w-full h-3.5 rounded-full overflow-hidden" style={{ background: '#e2e8f0' }}>
                     <div 
-                      className="h-full bg-slate-900 rounded-full transition-all duration-500"
-                      style={{ width: `${percentage}%` }}
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${percentage}%`, background: 'linear-gradient(90deg, #0f172b, #ffb900)' }}
                     />
                   </div>
                 </div>
@@ -204,7 +204,8 @@ export default function AdminPanel({
                     <span className="font-bold text-slate-900 text-sm">
                       {item.clientName} {item.clientLastName}
                     </span>
-                    <span className="px-2 py-0.5 bg-amber-50 text-amber-950 text-[10px] font-semibold rounded-md border border-amber-200 flex items-center gap-1 font-mono">
+                    <span className="px-2 py-0.5 text-[10px] font-semibold rounded-md flex items-center gap-1 font-mono"
+                      style={{ background: 'rgba(255,185,0,0.1)', color: '#0f172b', border: '1px solid rgba(255,185,0,0.3)' }}>
                       <Home className="h-2.5 w-2.5" />
                       <span>{item.propertyTitle}</span>
                     </span>

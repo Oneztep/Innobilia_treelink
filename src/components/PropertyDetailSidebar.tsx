@@ -205,36 +205,36 @@ export default function PropertyDetailSidebar({
         </div>
 
         {/* Home Specs Grid — premium card design */}
-        <dl className="grid grid-cols-3 gap-2 shadow-sm -border border-slate-100 rounded-xl">
-          <div className="flex flex-col items-center gap-1  from-slate-50 to-white p-3 rounded-xl  text-center ">
-            <div className="p-1.5 bg-amber-50 rounded-lg">
-              <BedDouble className="h-4 w-4 text-amber-600" />
+        <dl className="grid grid-cols-3 gap-2 rounded-xl" style={{ background: 'rgba(249,246,241,0.6)', border: '1px solid #e7e0d4' }}>
+          <div className="flex flex-col items-center gap-1 p-3 rounded-xl text-center">
+            <div className="p-1.5 rounded-lg" style={{ background: 'rgba(255,185,0,0.12)' }}>
+              <BedDouble className="h-4 w-4" style={{ color: '#ffb900' }} />
             </div>
-            <dt className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-semibold">Habitaciones</dt>
-            <dd className="text-lg font-black text-slate-900 leading-none">{property.rooms}</dd>
+            <dt className="text-[10px] uppercase font-mono tracking-wider font-semibold" style={{ color: '#94a3b8' }}>Habitaciones</dt>
+            <dd className="text-lg font-black leading-none" style={{ color: '#0f172b' }}>{property.rooms}</dd>
           </div>
 
-          <div className="flex flex-col items-center gap-1  from-slate-50 to-white p-3 text-center">
-            <div className="p-1.5 bg-sky-50 rounded-lg">
-              <Bath className="h-4 w-4 text-sky-600" />
+          <div className="flex flex-col items-center gap-1 p-3 text-center" style={{ borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
+            <div className="p-1.5 rounded-lg" style={{ background: 'rgba(255,185,0,0.08)' }}>
+              <Bath className="h-4 w-4" style={{ color: '#cc9a00' }} />
             </div>
-            <dt className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-semibold">Baños</dt>
-            <dd className="text-lg font-black text-slate-900 leading-none">{property.bathrooms}</dd>
+            <dt className="text-[10px] uppercase font-mono tracking-wider font-semibold" style={{ color: '#94a3b8' }}>Baños</dt>
+            <dd className="text-lg font-black leading-none" style={{ color: '#0f172b' }}>{property.bathrooms}</dd>
           </div>
 
-          <div className="flex flex-col items-center gap-1  from-slate-50 to-white p-3 text-center ">
-            <div className="p-1.5 bg-emerald-50 rounded-lg">
-              <Square className="h-4 w-4 text-emerald-600" />
+          <div className="flex flex-col items-center gap-1 p-3 text-center">
+            <div className="p-1.5 rounded-lg" style={{ background: '#f1f5f9' }}>
+              <Square className="h-4 w-4" style={{ color: '#64748b' }} />
             </div>
-            <dt className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-semibold">Metros m²</dt>
-            <dd className="text-lg font-black text-slate-900 leading-none">{property.area}<span className="text-xs font-medium text-slate-400"> m²</span></dd>
+            <dt className="text-[10px] uppercase font-mono tracking-wider font-semibold" style={{ color: '#94a3b8' }}>Metros m²</dt>
+            <dd className="text-lg font-black leading-none" style={{ color: '#0f172b' }}>{property.area}<span className="text-xs font-medium" style={{ color: '#94a3b8' }}> m²</span></dd>
           </div>
         </dl>
 
         {/* Property Description */}
         <div className="space-y-1.5">
-          <span className="text-[10px] uppercase font-mono tracking-wider text-amber-600 font-bold block">Descripción Residencial</span>
-          <p className="text-xs text-slate-600 leading-relaxed font-sans text-justify">
+          <span className="text-[10px] uppercase font-mono tracking-wider font-bold block" style={{ color: '#cc9a00' }}>Descripción Residencial</span>
+          <p className="text-xs leading-relaxed font-sans text-justify" style={{ color: '#64748b' }}>
             {property.description}
           </p>
         </div>
@@ -242,15 +242,16 @@ export default function PropertyDetailSidebar({
         {/* Feature Tags list */}
         {property.features.length > 0 && (
           <div className="space-y-2">
-            <span className="text-[10px] uppercase font-mono tracking-wider text-amber-600 font-bold block flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-amber-500" />
+            <span className="text-[10px] uppercase font-mono tracking-wider font-bold flex items-center gap-1" style={{ color: '#cc9a00' }}>
+              <Sparkles className="h-3 w-3" style={{ color: '#ffb900' }} />
               <span>Amenidades del Inmueble</span>
             </span>
             <div className="flex flex-wrap gap-1">
               {property.features.map((opt, i) => (
                 <span
                   key={i}
-                  className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-medium border border-slate-200"
+                  className="px-2 py-0.5 rounded text-[10px] font-medium"
+                  style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #e2e8f0' }}
                 >
                   {opt}
                 </span>
@@ -268,9 +269,12 @@ export default function PropertyDetailSidebar({
               onRegisterClick(property.id);
               setShowVirtualTour(true);
             }}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            style={{ background: '#f1f5f9', color: '#334155' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#e2e8f0'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#f1f5f9'}
           >
-            <Compass className="h-4 w-4 text-emerald-600" />
+            <Compass className="h-4 w-4" style={{ color: '#64748b' }} />
             <span>Ver Visita Virtual 3D</span>
           </button>
 
@@ -280,16 +284,22 @@ export default function PropertyDetailSidebar({
               onRegisterClick(property.id);
               onOpenBooking();
             }}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all hover:shadow-lg hover:shadow-slate-900/10 cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+            style={{ background: '#0f172b', color: '#f8fafc' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#1e293b'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#0f172b'}
           >
-            <Navigation className="h-4 w-4 text-amber-400" />
+            <Navigation className="h-4 w-4" style={{ color: '#ffb900' }} />
             <span>Agendar Cita con Calendario</span>
           </button>
 
           {/* WhatsApp Direct */}
           <button
             onClick={handleWhatsAppClick}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            style={{ background: '#25D366', color: '#fff' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#1fba57'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#25D366'}
           >
             <MessageSquare className="h-4 w-4 hover:scale-110 smooth-transition" />
             <span>Contacto Directo WhatsApp Corredor</span>

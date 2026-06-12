@@ -166,7 +166,16 @@ const PropertyCard = memo(function PropertyCard({
               <div className="flex items-center border-l border-stone-200 pl-1.5 ml-0.5 gap-0.5">
                 <button
                   onClick={(e) => { e.stopPropagation(); onEdit(p); }}
-                  className="p-1.5 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg transition-colors cursor-pointer"
+                  style={{ color: '#cc9a00' }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,185,0,0.1)';
+                    (e.currentTarget as HTMLElement).style.color = '#ffb900';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.background = 'transparent';
+                    (e.currentTarget as HTMLElement).style.color = '#cc9a00';
+                  }}
                   title="Editar"
                 >
                   <Edit className="h-3.5 w-3.5" />

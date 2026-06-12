@@ -165,8 +165,8 @@ export default function FiltersBar({
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-visible">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white rounded-t-2xl">
-        <div className="p-1.5 bg-slate-900 rounded-lg">
-          <SlidersHorizontal className="h-3.5 w-3.5 text-amber-400" />
+        <div className="p-1.5 rounded-lg" style={{ background: '#0f172b' }}>
+          <SlidersHorizontal className="h-3.5 w-3.5" style={{ color: '#ffb900' }} />
         </div>
         <span className="text-slate-800 font-bold text-[11px] uppercase tracking-wider font-mono">
           Filtrar Propiedades

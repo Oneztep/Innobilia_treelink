@@ -8,18 +8,20 @@
   --font-display: "Playfair Display", Georgia, serif;
   --font-mono: "DM Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Luxury palette */
-  --color-ink:      #0c0a09;
-  --color-ink-soft: #1c1917;
-  --color-gold:     #c9a84c;
-  --color-gold-lt:  #e2c37a;
-  --color-gold-dim: #8a6d2f;
-  --color-cream:    #faf7f2;
-  --color-cream-dim:#f0ead8;
-  --color-stone-1:  #292524;
-  --color-stone-2:  #44403c;
-  --color-stone-3:  #78716c;
-  --color-stone-4:  #a8a29e;
+  /* Icon palette — #0f172b dark / #ffb900 gold / #fe9a00 signal */
+  --color-ink:       #0a0f1e;
+  --color-ink-soft:  #0f172b;
+  --color-gold:      #ffb900;
+  --color-gold-lt:   #ffd040;
+  --color-gold-dim:  #cc9a00;
+  --color-signal:    #fe9a00;
+  --color-signal-lt: #ffc340;
+  --color-cream:     #faf9f7;
+  --color-cream-dim: #f1f0ec;
+  --color-slate-1:   #1e293b;
+  --color-slate-2:   #334155;
+  --color-slate-3:   #64748b;
+  --color-slate-4:   #94a3b8;
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────── */
@@ -35,8 +37,8 @@
   }
 
   body {
-    background-color: #f9f6f1;
-    color: var(--color-ink);
+    background-color: #f8fafc;
+    color: #0f172b;
     font-family: var(--font-sans);
     letter-spacing: -0.01em;
   }
@@ -44,8 +46,8 @@
   /* Scrollbar minimalista */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #d6cfc4; border-radius: 9999px; }
-  ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 }
 
 /* ── Grain overlay ──────────────────────────────────────────────────────── */
@@ -55,7 +57,7 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.025;
+  opacity: 0.018;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
   background-size: 128px 128px;
 }
@@ -81,16 +83,26 @@ body::before {
 }
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 99px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ── Design-token focus ring — luxury icon gold (#ffb900) ───────────────── */
+/* Overrides Tailwind amber focus so every input uses the exact icon palette. */
+[class*="focus:border-amber"]:focus {
+  border-color: #ffb900 !important;
+}
+[class*="focus:ring-amber"]:focus {
+  --tw-ring-color: rgba(255, 185, 0, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 185, 0, 0.2) !important;
+}
 
 /* ── Property card selected — gold shimmer border ───────────────────────── */
 .property-card-selected {
   position: relative;
   border-color: transparent !important;
   box-shadow:
-    0 0 0 1.5px rgba(201, 168, 76, 0.6),
-    0 8px 32px rgba(201, 168, 76, 0.12),
+    0 0 0 1.5px rgba(255, 185, 0, 0.7),
+    0 8px 32px rgba(255, 185, 0, 0.14),
     0 2px 8px rgba(0,0,0,0.06);
 }
 
@@ -100,7 +112,7 @@ body::before {
   inset: 0;
   border-radius: inherit;
   padding: 1.5px;
-  background: linear-gradient(135deg, #c9a84c, #e2c37a, #8a6d2f, #c9a84c);
+  background: linear-gradient(135deg, #ffb900, #ffd040, #fe9a00, #ffb900);
   background-size: 300% 300%;
   animation: goldShimmer 3s ease infinite;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -151,8 +163,8 @@ body::before {
 
 /* ── Gold badge pulse ───────────────────────────────────────────────────── */
 @keyframes pricePulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.5); }
-  50%       { box-shadow: 0 0 0 4px rgba(201, 168, 76, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 185, 0, 0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(255, 185, 0, 0); }
 }
 .price-badge {
   animation: pricePulse 2.5s ease-in-out infinite;
@@ -175,7 +187,7 @@ body::before {
   transform: translateX(-50%);
   width: 400px;
   height: 400px;
-  background: radial-gradient(ellipse at center, rgba(201, 168, 76, 0.08) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(255, 185, 0, 0.07) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -200,6 +212,6 @@ body::before {
   bottom: 0;
   left: 0;
   width: 60%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
   animation: bannerSlide 2.5s ease-in-out infinite;
 }
