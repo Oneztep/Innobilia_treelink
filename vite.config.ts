@@ -5,7 +5,9 @@ import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
-    base: './',
+    // VITE_BASE_URL=/Innobilia_treelink/ para GitHub Pages
+    // Vercel y desarrollo local usan '/' por defecto
+    base: process.env.VITE_BASE_URL ?? '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
