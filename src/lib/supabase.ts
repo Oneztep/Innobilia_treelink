@@ -10,8 +10,9 @@ let supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || '';
 supabaseUrl = supabaseUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
 
 const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseAnonKey || !supabaseKey) {
   console.warn('[innobilia] Supabase env vars not set — running in offline mode (localStorage only).');
 }
 

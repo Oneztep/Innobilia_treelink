@@ -11,6 +11,8 @@ interface WhatsAppLeadModalProps {
   targetPhone?: string;
   /** Nombre de la corredora */
   brokerName?: string;
+  /** Callback opcional que se dispara cuando el cliente confirma el envío */
+  onSend?: () => void;
 }
 
 export default function WhatsAppLeadModal({
@@ -19,6 +21,7 @@ export default function WhatsAppLeadModal({
   property = null,
   targetPhone,
   brokerName = 'Iraida',
+  onSend,
 }: WhatsAppLeadModalProps) {
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -107,6 +110,7 @@ export default function WhatsAppLeadModal({
     const waUrl = `https://wa.me/${destPhone}?text=${encodeURIComponent(message)}`;
 
     setSent(true);
+    onSend?.();
     setTimeout(() => {
       window.open(waUrl, '_blank');
     }, 700);

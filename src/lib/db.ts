@@ -221,7 +221,8 @@ export async function fetchAnalytics(): Promise<AnalyticsSummary | null> {
     .single();
 
   if (error) {
-    console.warn('[db] fetchAnalytics error:', error.message);
+    // PGRST116 = no rows found (expected on first run — table is empty)
+    if (error.code !== 'PGRST116') console.warn('[db] fetchAnalytics error:', error.message);
     return null;
   }
   return {
@@ -251,6 +252,23 @@ export async function upsertAnalytics(analytics: AnalyticsSummary): Promise<bool
   return true;
 }
 
+/** Increment WhatsApp lead counter in analytics (fire-and-forget) */
+export async function incrementWhatsAppLeads(): Promise<void> {
+  const { data } = await supabase
+    .from('analytics')
+    .select('whatsapp_leads')
+    .eq('id', 'global')
+    .single();
+
+  await supabase
+    .from('analytics')
+    .upsert({
+      id: 'global',
+      whatsapp_leads: (data?.whatsapp_leads ?? 0) + 1,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'id' });
+}
+
 // ─── Company Settings ─────────────────────────────────────────────────────────
 
 export async function fetchCompanySettings(): Promise<CompanySettings | null> {
@@ -261,7 +279,8 @@ export async function fetchCompanySettings(): Promise<CompanySettings | null> {
     .single();
 
   if (error) {
-    console.warn('[db] fetchCompanySettings error:', error.message);
+    // PGRST116 = no rows found (expected on first run — table is empty)
+    if (error.code !== 'PGRST116') console.warn('[db] fetchCompanySettings error:', error.message);
     return null;
   }
   return {

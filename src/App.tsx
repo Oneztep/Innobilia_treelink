@@ -19,6 +19,7 @@ import {
   upsertAnalytics,
   fetchCompanySettings,
   upsertCompanySettings,
+  incrementWhatsAppLeads,
 } from './lib/db';
 
 // Eagerly-loaded small components
@@ -48,6 +49,8 @@ import {
   Edit,
   Instagram,
   X,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 // rendering-hoist-jsx: static JSX that never changes — defined outside component
@@ -179,6 +182,7 @@ export default function App() {
   const [showAdminAuthModal, setShowAdminAuthModal] = useState(false);
   const [adminAuthInput, setAdminAuthInput] = useState('');
   const [adminAuthError, setAdminAuthError] = useState(false);
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
   // 5. Confirm modal (replaces window.confirm)
   const [confirmState, setConfirmState] = useState<ConfirmState>(CONFIRM_CLOSED);
@@ -774,7 +778,7 @@ export default function App() {
                     style={{ background: '#1877F2' }}
                   >
                     <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
                   </a>
                 ) : null}
@@ -922,6 +926,7 @@ export default function App() {
           property={waModalProperty}
           targetPhone={waModalPhone}
           brokerName="Iraida"
+          onSend={incrementWhatsAppLeads}
         />
 
         {/* Admin Authentication Modal */}
@@ -969,30 +974,43 @@ export default function App() {
                   <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#a8a29e' }}>
                     Clave de Acceso
                   </label>
-                  <input
-                    type="password"
-                    autoFocus
-                    placeholder="Ingresa tu clave secreta..."
-                    value={adminAuthInput}
-                    onChange={(e) => { setAdminAuthInput(e.target.value); setAdminAuthError(false); }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        if (adminAuthInput === companySettings.adminSecret) {
-                          setRole('admin');
-                          setShowAdminAuthModal(false);
-                          showToast('¡Bienvenido! Modo Administrador activado.');
-                        } else {
-                          setAdminAuthError(true);
+                  <div className="relative">
+                    <input
+                      type={showAdminPassword ? 'text' : 'password'}
+                      autoFocus
+                      placeholder="Ingresa clave secrecta"
+                      value={adminAuthInput}
+                      onChange={(e) => { setAdminAuthInput(e.target.value); setAdminAuthError(false); }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          if (adminAuthInput === companySettings.adminSecret) {
+                            setRole('admin');
+                            setShowAdminAuthModal(false);
+                            showToast('¡Bienvenido! Modo Administrador activado.');
+                          } else {
+                            setAdminAuthError(true);
+                          }
                         }
-                      }
-                    }}
-                    className="w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none font-mono"
-                    style={{
-                      background: '#292524',
-                      borderColor: adminAuthError ? '#ef4444' : '#44403c',
-                      color: '#faf7f2',
-                    }}
-                  />
+                      }}
+                      className="w-full rounded-xl border px-4 py-2.5 pr-11 text-sm focus:outline-none font-mono"
+                      style={{
+                        background: '#292524',
+                        borderColor: adminAuthError ? '#ef4444' : '#44403c',
+                        color: '#faf7f2',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAdminPassword(prev => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors cursor-pointer"
+                      style={{ color: showAdminPassword ? '#c9a84c' : '#78716c' }}
+                      aria-label={showAdminPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
+                      {showAdminPassword
+                        ? <EyeOff className="h-4 w-4" />
+                        : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {adminAuthError ? (
                     <p className="text-[11px] font-semibold" style={{ color: '#ef4444' }}>
                       Clave incorrecta. Inténtalo de nuevo.
