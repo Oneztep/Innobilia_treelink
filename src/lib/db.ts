@@ -239,6 +239,7 @@ export async function fetchAnalytics(): Promise<AnalyticsSummary | null> {
     totalShares: data.total_shares ?? 0,
     propertyClicks: (data.property_clicks as Record<string, number>) ?? {},
     propertyShares: (data.property_shares as Record<string, number>) ?? {},
+    dailyClicks: (data.daily_clicks as Record<string, Record<string, number>>) ?? {},
   };
 }
 
@@ -252,6 +253,7 @@ export async function upsertAnalytics(analytics: AnalyticsSummary): Promise<bool
       total_shares: analytics.totalShares,
       property_clicks: analytics.propertyClicks,
       property_shares: analytics.propertyShares,
+      daily_clicks: analytics.dailyClicks,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
 

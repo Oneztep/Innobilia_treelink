@@ -92,14 +92,6 @@ export default function AdminConsole({
           </div>
           <h3 className="font-display text-sm font-bold" style={{ color: '#f8fafc' }}>Consola de Publicación de Enlaces</h3>
         </div>
-        <button
-          onClick={onAddProperty}
-          className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-black rounded-lg transition-all hover:scale-105 cursor-pointer shadow"
-          style={{ background: '#ffb900', color: '#0f172b' }}
-        >
-          <Plus className="h-4 w-4" />
-          <span>Publicar Propiedad</span>
-        </button>
       </div>
 
       {/* Client Link */}
@@ -147,10 +139,10 @@ export default function AdminConsole({
               <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#94a3b8' }}>Clave Secreta de Acceso</label>
               <input
                 type="text"
-                placeholder="ej. mi_clave_secreta_99"
+                placeholder="ej. mi_clave.secreta@99#"
                 value={companySettings.adminSecret || 'secreto123'}
                 onChange={(e) =>
-                  onSaveSettings({ ...companySettings, adminSecret: e.target.value.replace(/[^a-zA-Z0-9_-]/g, '') })
+                  onSaveSettings({ ...companySettings, adminSecret: e.target.value.replace(/[^a-zA-Z0-9_.\-/@#]/g, '') })
                 }
                 className="w-full rounded-lg border px-2.5 py-1.5 text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
                 style={{ background: '#0a0f1e', borderColor: '#334155', color: '#f8fafc' }}

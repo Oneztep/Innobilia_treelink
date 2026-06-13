@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
-import { SlidersHorizontal, MapPin, Search, Info, X, ChevronDown, Check, DollarSign } from 'lucide-react';
+import { SlidersHorizontal, MapPin, Search, Info, X, ChevronDown, Check, DollarSign, Plus } from 'lucide-react';
 
 interface FiltersBarProps {
   uniqueLocations: string[];
@@ -16,6 +16,8 @@ interface FiltersBarProps {
   onCustomMinChange: (v: string) => void;
   onCustomMaxChange: (v: string) => void;
   onClearFilters: () => void;
+  role?: 'client' | 'admin';
+  onAddProperty?: () => void;
 }
 
 interface SelectOption {
@@ -145,6 +147,8 @@ export default function FiltersBar({
   onCustomMinChange,
   onCustomMaxChange,
   onClearFilters,
+  role = 'client',
+  onAddProperty,
 }: FiltersBarProps) {
   const hasActiveFilters =
     selectedLocation !== 'all' || selectedPriceRange !== 'all' || searchQuery !== '';
@@ -156,21 +160,37 @@ export default function FiltersBar({
 
   const priceOptions: SelectOption[] = [
     { value: 'all', label: 'Cualquier presupuesto' },
-    { value: 'under-150k', label: 'Menor a $150k USD' },
-    { value: '150k-300k', label: '$150k – $300k USD' },
-    { value: 'above-300k', label: 'Mayor a $300k USD' },
+    { value: 'under-60k', label: 'Menor a $60k USD' },
+    { value: '60k-100k', label: '$60k – $100k USD' },
+    { value: 'above-100k', label: 'Mayor a $100k USD' },
     { value: 'custom', label: 'Monto personalizado', emoji: '💰' },
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-visible">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white rounded-t-2xl">
-        <div className="p-1.5 rounded-lg" style={{ background: '#0f172b' }}>
-          <SlidersHorizontal className="h-3.5 w-3.5" style={{ color: '#ffb900' }} />
+    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
+      {/* Header section with Filter Title and optional Add Button */}
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="flex items-center justify-between flex-1">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl" style={{ background: 'rgba(15,23,43,0.06)' }}>
+              <SlidersHorizontal className="h-4 w-4" style={{ color: '#0f172b' }} />
+            </div>
+            <h2 className="font-display font-bold text-slate-900">
+              Filtros de Propiedades
+            </h2>
+          </div>
+          {/* Add property button for admin */}
+          {role === 'admin' && onAddProperty && (
+            <button
+              onClick={onAddProperty}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white font-bold text-xs shadow hover:-translate-y-0.5 transition-transform"
+              style={{ background: '#ffb900' }}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Publicar</span>
+            </button>
+          )}
         </div>
-        <span className="text-slate-800 font-bold text-[11px] uppercase tracking-wider font-mono">
-          Filtrar Propiedades
-        </span>
       </div>
 
       {/* Filter inputs grid */}

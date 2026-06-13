@@ -51,6 +51,7 @@ import {
   X,
   Eye,
   EyeOff,
+  ChevronDown,
 } from 'lucide-react';
 
 // rendering-hoist-jsx: static JSX that never changes — defined outside component
@@ -143,6 +144,7 @@ export default function App() {
       totalShares: 227,
       propertyClicks: { 'prop-1': 142, 'prop-2': 98, 'prop-3': 215, 'prop-4': 310 },
       propertyShares: { 'prop-1': 48, 'prop-2': 21, 'prop-3': 64, 'prop-4': 94 },
+      dailyClicks: {},
     };
   });
 
@@ -232,6 +234,7 @@ export default function App() {
           totalShares: 0,
           propertyClicks: {},
           propertyShares: {},
+          dailyClicks: {},
         };
 
         const updatedAnalytics = {
@@ -360,9 +363,13 @@ export default function App() {
   // useCallback: rerender-functional-setstate + stable ref for PropertyCard memo
   const handleRegisterClick = useCallback((propertyId: string) => {
     let updated: AnalyticsSummary | null = null;
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
     setAnalytics(prev => {
       const propClicks = { ...prev.propertyClicks, [propertyId]: (prev.propertyClicks[propertyId] || 0) + 1 };
-      updated = { ...prev, propertyClicks: propClicks };
+      // Update dailyClicks: today -> propertyId -> count
+      const dayEntry = { ...(prev.dailyClicks[today] || {}), [propertyId]: ((prev.dailyClicks[today]?.[propertyId] || 0) + 1) };
+      const dailyClicks = { ...prev.dailyClicks, [today]: dayEntry };
+      updated = { ...prev, propertyClicks: propClicks, dailyClicks };
       lsSet('innobilia_analytics', updated);
       return updated;
     });
@@ -394,7 +401,7 @@ export default function App() {
       confirmLabel: 'Sí, restablecer',
       variant: 'warning',
       onConfirm: () => {
-        const reset: AnalyticsSummary = { totalVisits: 1, totalShares: 0, propertyClicks: {}, propertyShares: {} };
+        const reset: AnalyticsSummary = { totalVisits: 1, totalShares: 0, propertyClicks: {}, propertyShares: {}, dailyClicks: {} };
         setAnalytics(reset);
         lsSet('innobilia_analytics', reset);
         showToast('Contadores de analíticas restablecidos a cero.');
@@ -425,6 +432,30 @@ export default function App() {
     showToast('¡Cita solicitada! Revisar en el Panel de Administración.');
     // Insert into Supabase
     insertAppointment(newAppointment);
+  };
+
+  const handleWhatsAppLeadSubmit = (data: { name: string; phone: string; date: string; time: string; budget: string; notes: string; }) => {
+    incrementWhatsAppLeads();
+    
+    // Create new appointment for the admin dashboard
+    const newApt: Appointment = {
+      id: `app-wa-${Date.now()}`,
+      propertyId: waModalProperty?.id || '',
+      propertyTitle: waModalProperty?.title || 'Consulta General',
+      clientName: data.name,
+      clientLastName: '',
+      clientEmail: 'WhatsApp',
+      clientPhone: data.phone,
+      budget: Number(data.budget.replace(/[^0-9]/g, '')) || 0,
+      date: data.date,
+      time: data.time,
+      notes: data.notes,
+      createdAt: new Date().toISOString(),
+    };
+
+    setAppointments(prev => [newApt, ...prev]);
+    showToast('Tu consulta fue preparada exitosamente.');
+    insertAppointment(newApt);
   };
 
   const handleDeleteAppointment = (id: string) => {
@@ -652,6 +683,29 @@ export default function App() {
               ) : null}
             </div>
 
+            {role === 'client' && (
+              <div className="mt-4 flex flex-col items-center gap-1">
+                <button
+                  onClick={() => document.getElementById('contact-nav')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="group flex flex-col items-center gap-1 text-[11px] uppercase tracking-widest font-mono cursor-pointer transition-colors"
+                  style={{ color: '#94a3b8' }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.color = '#fe9a00';
+                    const icon = e.currentTarget.querySelector('svg');
+                    if (icon) icon.style.color = '#fe9a00';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.color = '#94a3b8';
+                    const icon = e.currentTarget.querySelector('svg');
+                    if (icon) icon.style.color = '#94a3b8';
+                  }}
+                >
+                  <span>enlaces de contacto</span>
+                  <ChevronDown className="h-4 w-4 animate-bounce mt-0.5 transition-colors" style={{ color: '#94a3b8' }} />
+                </button>
+              </div>
+            )}
+
           </div>
 
           {/* Admin Console (only visible in admin mode) */}
@@ -687,6 +741,8 @@ export default function App() {
             onCustomMinChange={setCustomMinPrice}
             onCustomMaxChange={setCustomMaxPrice}
             onClearFilters={handleClearFilters}
+            role={role}
+            onAddProperty={() => setShowAddModal(true)}
           />
 
           {/* Property cards list */}
@@ -704,7 +760,7 @@ export default function App() {
                 <p className="text-sm">No se encontraron propiedades con los parámetros buscados.</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 overflow-y-auto pr-1 scrollbar-hover" style={{ maxHeight: '680px' }}>
                 {filteredProperties.map((p, idx) => (
                   <PropertyCard
                     key={p.id}
@@ -727,7 +783,7 @@ export default function App() {
 
           {/* Social media contact — luxury style */}
           {role === 'client' ? (
-            <nav aria-label="Canales Oficiales de Contacto" className="pt-6 border-t space-y-3"
+            <nav id="contact-nav" aria-label="Canales Oficiales de Contacto" className="pt-6 border-t space-y-3"
               style={{ borderColor: '#e2e8f0' }}>
               <p className="font-mono text-[10px] uppercase tracking-widest text-center" style={{ color: '#94a3b8' }}>
                 Canales Oficiales
@@ -913,7 +969,7 @@ export default function App() {
           property={waModalProperty}
           targetPhone={waModalPhone}
           brokerName="Iraida"
-          onSend={incrementWhatsAppLeads}
+          onSend={handleWhatsAppLeadSubmit}
         />
 
         {/* Admin Authentication Modal */}

@@ -41,4 +41,6 @@ export interface AnalyticsSummary {
   totalShares: number;
   propertyClicks: Record<string, number>;
   propertyShares: Record<string, number>;
+  /** ISO date string (YYYY-MM-DD) → propertyId → click count */
+  dailyClicks: Record<string, Record<string, number>>;
 }

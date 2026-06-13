@@ -38,9 +38,9 @@ export default function PropertyDetailSidebar({
     return (
       <div className="hidden lg:flex h-full flex-col items-center justify-center text-center p-8 bg-white rounded-2xl border border-slate-100 shadow-sm min-h-[500px]">
         <div className="rounded-full bg-slate-50 p-6 text-slate-300 mb-4 animate-pulse">
-          <Landmark className="h-10 w-10 text-amber-500/40" />
+          <Landmark className="h-10 w-10" style={{ color: 'rgba(255,185,0,0.4)' }} />
         </div>
-        <h3 className="font-display text-base font-bold text-slate-800">Detalles de la Propiedad</h3>
+        <h3 className="font-display text-base font-bold" style={{ color: '#0f172b' }}>Detalles de la Propiedad</h3>
         <p className="text-xs text-slate-400 max-w-xs mt-1">
           Haz clic en cualquier propiedad disponible para desplegar la información completa, fotos exclusivas y agendar una visita.
         </p>
@@ -115,7 +115,7 @@ export default function PropertyDetailSidebar({
           {/* Virtual interface graphic styling */}
           <div className="absolute inset-0 bg-black/30 pointer-events-none" />
           <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] text-white flex items-center gap-1 font-mono uppercase font-bold tracking-wider">
-            <Compass className="h-3 w-3 text-amber-500 animate-spin" />
+            <Compass className="h-3 w-3 animate-spin" style={{ color: '#ffb900' }} />
             <span>Recorrido 3D Interactivo Activo</span>
           </div>
 
@@ -177,8 +177,9 @@ export default function PropertyDetailSidebar({
                   setActiveImageIndex(i);
                   setAnimKey(k => k + 1);
                 }}
-                className={`h-1.5 rounded-full transition-all ${activeImageIndex === i ? 'w-3.5 bg-amber-500' : 'w-1.5 bg-white/60 hover:bg-white'
+                className={`h-1.5 rounded-full transition-all ${activeImageIndex === i ? 'w-3.5' : 'w-1.5 bg-white/60 hover:bg-white'
                   }`}
+                style={activeImageIndex === i ? { background: '#ffb900' } : {}}
               />
             ))}
           </div>
@@ -186,26 +187,26 @@ export default function PropertyDetailSidebar({
       )}
 
       {/* Info Sections */}
-      <div className="p-5.5 flex-1 overflow-y-auto space-y-4.5">
+      <div className="p-5.5 flex-1 overflow-y-auto space-y-4.5 scrollbar-hover">
 
         {/* Title & Price header */}
         <div className="space-y-1.5">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="font-display text-base font-bold text-slate-900 leading-snug">
+            <h3 className="font-display text-base font-bold leading-snug" style={{ color: '#0f172b' }}>
               {property.title}
             </h3>
-            <span className="text-lg font-bold text-slate-950 shrink-0 font-mono">
+            <span className="text-lg font-bold shrink-0 font-mono" style={{ color: '#0f172b' }}>
               ${property.price.toLocaleString()}
             </span>
           </div>
           <div className="flex items-center gap-1 text-xs text-slate-500">
-            <MapPin className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+            <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: '#ffb900' }} />
             <span className="line-clamp-1">{property.address || property.location}</span>
           </div>
         </div>
 
         {/* Home Specs Grid — premium card design */}
-        <dl className="grid grid-cols-3 gap-2 rounded-xl" style={{ background: 'rgba(249,246,241,0.6)', border: '1px solid #e7e0d4' }}>
+        <dl className="grid grid-cols-3 gap-2 rounded-xl" style={{ background: 'rgba(249,246,241,0.6)', }}>
           <div className="flex flex-col items-center gap-1 p-3 rounded-xl text-center">
             <div className="p-1.5 rounded-lg" style={{ background: 'rgba(255,185,0,0.12)' }}>
               <BedDouble className="h-4 w-4" style={{ color: '#ffb900' }} />
@@ -214,17 +215,17 @@ export default function PropertyDetailSidebar({
             <dd className="text-lg font-black leading-none" style={{ color: '#0f172b' }}>{property.rooms}</dd>
           </div>
 
-          <div className="flex flex-col items-center gap-1 p-3 text-center" style={{ borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
+          <div className="flex flex-col items-center gap-1 p-3 text-center" style={{}}>
             <div className="p-1.5 rounded-lg" style={{ background: 'rgba(255,185,0,0.08)' }}>
-              <Bath className="h-4 w-4" style={{ color: '#cc9a00' }} />
+              <Bath className="h-4 w-4" style={{ color: '#ffb900' }} />
             </div>
             <dt className="text-[10px] uppercase font-mono tracking-wider font-semibold" style={{ color: '#94a3b8' }}>Baños</dt>
             <dd className="text-lg font-black leading-none" style={{ color: '#0f172b' }}>{property.bathrooms}</dd>
           </div>
 
           <div className="flex flex-col items-center gap-1 p-3 text-center">
-            <div className="p-1.5 rounded-lg" style={{ background: '#f1f5f9' }}>
-              <Square className="h-4 w-4" style={{ color: '#64748b' }} />
+            <div className="p-1.5 rounded-lg" style={{ background: 'rgba(255,185,0,0.08)' }}>
+              <Square className="h-4 w-4" style={{ color: '#ffb900' }} />
             </div>
             <dt className="text-[10px] uppercase font-mono tracking-wider font-semibold" style={{ color: '#94a3b8' }}>Metros m²</dt>
             <dd className="text-lg font-black leading-none" style={{ color: '#0f172b' }}>{property.area}<span className="text-xs font-medium" style={{ color: '#94a3b8' }}> m²</span></dd>
@@ -233,7 +234,7 @@ export default function PropertyDetailSidebar({
 
         {/* Property Description */}
         <div className="space-y-1.5">
-          <span className="text-[10px] uppercase font-mono tracking-wider font-bold block" style={{ color: '#cc9a00' }}>Descripción Residencial</span>
+          <span className="text-[10px] uppercase font-mono tracking-wider font-bold block" style={{ color: '#ffb900' }}>Descripción Residencial</span>
           <p className="text-xs leading-relaxed font-sans text-justify" style={{ color: '#64748b' }}>
             {property.description}
           </p>
@@ -242,7 +243,7 @@ export default function PropertyDetailSidebar({
         {/* Feature Tags list */}
         {property.features.length > 0 && (
           <div className="space-y-2">
-            <span className="text-[10px] uppercase font-mono tracking-wider font-bold flex items-center gap-1" style={{ color: '#cc9a00' }}>
+            <span className="text-[10px] uppercase font-mono tracking-wider font-bold flex items-center gap-1" style={{ color: '#ffb900' }}>
               <Sparkles className="h-3 w-3" style={{ color: '#ffb900' }} />
               <span>Amenidades del Inmueble</span>
             </span>

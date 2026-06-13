@@ -68,11 +68,11 @@ const PropertyCard = memo(function PropertyCard({
         group relative overflow-hidden flex flex-col sm:flex-row
         bg-white/80 backdrop-blur-sm rounded-2xl border
         transition-all duration-300
-        hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-0.5
+        hover:shadow-[0_8px_30px_rgba(15,23,43,0.10)] hover:-translate-y-0.5
         cursor-pointer
         ${isSelected
           ? 'border-transparent shadow-md property-card-selected'
-          : 'border-stone-200/70 hover:border-stone-300'
+          : 'border-slate-200/70 hover:border-slate-300'
         }
       `}
     >
@@ -93,8 +93,9 @@ const PropertyCard = memo(function PropertyCard({
             el.parentElement?.appendChild(wrapper);
           }}
         />
-        {/* Price badge */}
-        <div className="price-badge absolute top-2.5 left-2.5 px-2.5 py-1 bg-stone-900/92 backdrop-blur-sm text-[#c9a84c] font-mono text-[10px] font-bold rounded-lg shadow-lg border border-stone-700/50">
+        {/* Price badge — icon palette */}
+        <div className="price-badge absolute top-2.5 left-2.5 px-2.5 py-1 backdrop-blur-sm font-mono text-[10px] font-bold rounded-lg shadow-lg"
+          style={{ background: 'rgba(15,23,43,0.92)', color: '#ffb900', border: '1px solid rgba(255,185,0,0.25)' }}>
           ${p.price.toLocaleString()}
         </div>
       </div>
@@ -103,13 +104,19 @@ const PropertyCard = memo(function PropertyCard({
       <div className="p-4 flex-1 flex flex-col justify-between gap-2.5">
         <div>
           <div className="flex items-start justify-between gap-2">
-            <h4 className="font-display font-semibold text-stone-900 text-[15px] leading-snug line-clamp-1 group-hover:text-[#8a6d2f] transition-colors">
+            <h4 className="font-display font-semibold text-stone-900 text-[15px] leading-snug line-clamp-1 transition-colors"
+              style={{} as React.CSSProperties}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#cc9a00'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = ''}>
               {p.title}
             </h4>
-            <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-stone-600 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+            <ChevronRight className="h-4 w-4 text-stone-300 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5"
+              style={{ color: undefined }}
+              onMouseEnter={undefined}
+            />
           </div>
           <div className="flex items-center gap-1 text-[11px] text-stone-400 mt-1">
-            <MapPin className="h-3 w-3 text-[#c9a84c] shrink-0" />
+            <MapPin className="h-3 w-3 shrink-0" style={{ color: '#ffb900' }} />
             <span className="line-clamp-1">{p.address}</span>
           </div>
         </div>
@@ -145,9 +152,18 @@ const PropertyCard = memo(function PropertyCard({
             {p.virtualTourUrl !== undefined && p.virtualTourUrl !== null && p.virtualTourUrl !== '' ? (
               <button
                 onClick={(e) => { e.stopPropagation(); onClick(p); }}
-                className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 text-[10px] font-semibold rounded-lg border border-sky-100/80 transition-colors flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 text-[10px] font-semibold rounded-lg border transition-colors flex items-center gap-1 cursor-pointer"
+                style={{ background: 'rgba(15,23,43,0.06)', borderColor: 'rgba(15,23,43,0.15)', color: '#334155' }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(15,23,43,0.1)';
+                  (e.currentTarget as HTMLElement).style.color = '#0f172b';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(15,23,43,0.06)';
+                  (e.currentTarget as HTMLElement).style.color = '#334155';
+                }}
               >
-                <Compass className="h-3 w-3 text-sky-500" />
+                <Compass className="h-3 w-3" style={{ color: '#ffb900' }} />
                 Tour 3D
               </button>
             ) : null}

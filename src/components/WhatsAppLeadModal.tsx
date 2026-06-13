@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Phone, Calendar, MessageSquare, CheckCircle2, Clock } from 'lucide-react';
+import { X, User, Phone, Calendar, MessageSquare, CheckCircle2, Clock, DollarSign, Text } from 'lucide-react';
 import { Property } from '../types';
 
 interface WhatsAppLeadModalProps {
@@ -12,7 +12,7 @@ interface WhatsAppLeadModalProps {
   /** Nombre de la corredora */
   brokerName?: string;
   /** Callback opcional que se dispara cuando el cliente confirma el envío */
-  onSend?: () => void;
+  onSend?: (data: { name: string; phone: string; date: string; time: string; budget: string; notes: string; }) => void;
 }
 
 export default function WhatsAppLeadModal({
@@ -25,6 +25,8 @@ export default function WhatsAppLeadModal({
 }: WhatsAppLeadModalProps) {
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [clientBudget, setClientBudget] = useState('');
+  const [clientNeeds, setClientNeeds] = useState('');
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('10:00 AM');
   const [sent, setSent] = useState(false);
@@ -35,6 +37,8 @@ export default function WhatsAppLeadModal({
     if (isOpen) {
       setClientName('');
       setClientPhone('');
+      setClientBudget('');
+      setClientNeeds('');
       setAppointmentDate('');
       setAppointmentTime('10:00 AM');
       setSent(false);
@@ -83,6 +87,11 @@ export default function WhatsAppLeadModal({
     lines.push(`📋 *Información del Cliente*`);
     lines.push(`• Nombre: ${clientName}`);
     lines.push(`• Teléfono: ${clientPhone}`);
+    if (clientBudget) lines.push(`• Presupuesto aprox.: ${clientBudget}`);
+    if (clientNeeds) {
+      lines.push(`• Interés / Requerimientos:`);
+      lines.push(`  "${clientNeeds}"`);
+    }
     lines.push('');
     if (property) {
       lines.push(`🏠 *Propiedad de Interés*`);
@@ -110,7 +119,14 @@ export default function WhatsAppLeadModal({
     const waUrl = `https://wa.me/${destPhone}?text=${encodeURIComponent(message)}`;
 
     setSent(true);
-    onSend?.();
+    onSend?.({
+      name: clientName,
+      phone: clientPhone,
+      date: dateFormatted,
+      time: appointmentTime,
+      budget: clientBudget,
+      notes: `Lead vía WhatsApp.${clientNeeds ? ' Requerimientos: ' + clientNeeds : ''}`
+    });
     setTimeout(() => {
       window.open(waUrl, '_blank');
     }, 700);
@@ -232,6 +248,40 @@ export default function WhatsAppLeadModal({
                   />
                 </div>
                 {errors.clientPhone && <p className="text-[11px] text-red-500 mt-1">{errors.clientPhone}</p>}
+              </div>
+
+              {/* Client Budget */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                  Presupuesto aproximado <span className="text-slate-400 font-normal">(Opcional)</span>
+                </label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Ej. $150,000"
+                    value={clientBudget}
+                    onChange={e => setClientBudget(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 hover:bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Client Needs */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                  ¿Qué buscas en tu nuevo hogar? <span className="text-slate-400 font-normal">(Opcional)</span>
+                </label>
+                <div className="relative">
+                  <Text className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <textarea
+                    placeholder="Ej. 3 habitaciones, zona tranquila..."
+                    value={clientNeeds}
+                    onChange={e => setClientNeeds(e.target.value)}
+                    rows={2}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 hover:bg-white resize-none"
+                  />
+                </div>
               </div>
 
               {/* Date picker */}
