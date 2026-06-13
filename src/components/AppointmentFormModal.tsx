@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Appointment, Property } from '../types';
 import { Calendar, Clock, DollarSign, User, Mail, Phone, X, Award, CheckCircle2 } from 'lucide-react';
+import { useModal } from '../hooks/useModal';
 
 interface AppointmentFormProps {
   property: Property;
@@ -10,6 +11,7 @@ interface AppointmentFormProps {
 }
 
 export default function AppointmentFormModal({ property, isOpen, onClose, onSubmit }: AppointmentFormProps) {
+  const { isVisible, animClass, close } = useModal(isOpen, onClose);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -20,7 +22,7 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
   const [notes, setNotes] = useState('');
   const [success, setSuccess] = useState(false);
 
-  if (!isOpen) return null;
+  if (!isVisible) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,12 +100,12 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Blurred mobile background */}
-      <div 
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-md-custom transition-opacity"
-        onClick={onClose}
+      <div
+        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-md-custom transition-opacity ${animClass.overlay}`}
+        onClick={close}
       />
-      
-      <div className="relative w-[90%] max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl transition-all border border-slate-100 mx-auto">
+
+      <div className={`relative w-[90%] max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl transition-all border border-slate-100 mx-auto ${animClass.panel}`}>
         
         {success ? (
           <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
@@ -126,8 +128,8 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
                 <span className="text-xs font-semibold text-amber-600 tracking-wider uppercase font-mono">Agendar Visita</span>
                 <h3 className="font-display text-lg font-bold text-slate-900 line-clamp-1">{property.title}</h3>
               </div>
-              <button 
-                onClick={onClose}
+              <button
+                onClick={close}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
               >
                 <X className="h-5 w-5" />

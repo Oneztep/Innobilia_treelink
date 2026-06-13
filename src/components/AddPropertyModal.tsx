@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Property } from '../types';
 import { X, Plus, Trash2, Home, MapPin, DollarSign, BedDouble, Bath, Square, Sparkles, MessageSquare, Compass, Image as ImageIcon } from 'lucide-react';
+import { useModal } from '../hooks/useModal';
 
 interface AddPropertyModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ const POPULAR_FEATURES = [
 ];
 
 export default function AddPropertyModal({ isOpen, onClose, onSave, editingProperty }: AddPropertyModalProps) {
+  const { isVisible, animClass, close } = useModal(isOpen, onClose);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
@@ -96,7 +98,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
     setImagesList((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
-  if (!isOpen) return null;
+  if (!isVisible) return null;
 
   const handleToggleFeature = (feature: string) => {
     if (features.includes(feature)) {
@@ -147,9 +149,9 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md-custom" onClick={onClose} />
-      
-      <div className="relative w-[90%] max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] mx-auto">
+      <div className={`fixed inset-0 bg-slate-900/60 backdrop-blur-md-custom ${animClass.overlay}`} onClick={close} />
+
+      <div className={`relative w-[90%] max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] mx-auto ${animClass.panel}`}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50">
           <div>
@@ -160,7 +162,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
               {editingProperty ? `ID: ${editingProperty.id}` : 'Completa los campos para listar el inmueble estilo Innobilia'}
             </p>
           </div>
-          <button onClick={onClose} className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
+          <button onClick={close} className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>

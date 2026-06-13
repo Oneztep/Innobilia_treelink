@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Phone, Calendar, MessageSquare, CheckCircle2, Clock, DollarSign, Text } from 'lucide-react';
 import { Property } from '../types';
+import { useModal } from '../hooks/useModal';
 
 interface WhatsAppLeadModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export default function WhatsAppLeadModal({
   brokerName = 'Iraida',
   onSend,
 }: WhatsAppLeadModalProps) {
+  const { isVisible, animClass, close } = useModal(isOpen, onClose);
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [clientBudget, setClientBudget] = useState('');
@@ -135,23 +137,17 @@ export default function WhatsAppLeadModal({
     }, 3000);
   };
 
+  if (!isVisible) return null;
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm"
-        onClick={onClose}
+        className={`fixed inset-0 bg-slate-900/65 backdrop-blur-sm ${animClass.overlay}`}
+        onClick={close}
       />
 
-      <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
-        style={{ animation: 'waModalIn 0.22s cubic-bezier(0.16,1,0.3,1)' }}
-      >
-        <style>{`
-          @keyframes waModalIn {
-            from { opacity:0; transform:translateY(16px) scale(0.97); }
-            to   { opacity:1; transform:translateY(0)    scale(1);    }
-          }
-        `}</style>
+      <div className={`relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden ${animClass.panel}`}>
 
         {/* ── SUCCESS STATE ── */}
         {sent ? (

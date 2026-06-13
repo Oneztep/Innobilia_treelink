@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { useModal } from '../hooks/useModal';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -26,7 +27,8 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
-  if (!isOpen) return null;
+  const { isVisible, animClass, close: handleCancel } = useModal(isOpen, onCancel);
+  if (!isVisible) return null;
 
   const isDanger = variant === 'danger';
 
@@ -39,12 +41,12 @@ export default function ConfirmModal({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm"
-        onClick={onCancel}
+        className={`fixed inset-0 bg-slate-900/70 backdrop-blur-sm ${animClass.overlay}`}
+        onClick={handleCancel}
       />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
+      <div className={`relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden ${animClass.panel}`}>
         {/* Header */}
         <div className={`px-5 pt-5 pb-4 flex items-start gap-3`}>
           <div className={`shrink-0 p-2 rounded-xl ${isDanger ? 'bg-red-50' : 'bg-amber-50'}`}>

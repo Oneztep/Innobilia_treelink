@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Property } from '../types';
 import { Share2, Check, Copy, MessageSquare, Facebook, Mail, X, Instagram } from 'lucide-react';
+import { useModal } from '../hooks/useModal';
 
 interface ShareModalProps {
   property: Property | null;
@@ -10,9 +11,10 @@ interface ShareModalProps {
 }
 
 export default function ShareModal({ property, isOpen, onClose, onConfirmShare }: ShareModalProps) {
+  const { isVisible, animClass, close } = useModal(isOpen, onClose);
   const [copied, setCopied] = useState(false);
 
-  if (!isOpen || !property) return null;
+  if (!isVisible || !property) return null;
 
   const shareUrl = `${window.location.origin}/?property=${property.id}`;
   const shareText = `¡Mira esta espectacular propiedad de Innobilia! ${property.title} por $${property.price.toLocaleString()}`;
@@ -49,9 +51,9 @@ export default function ShareModal({ property, isOpen, onClose, onConfirmShare }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Compartir propiedad">
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md-custom" onClick={onClose} />
+      <div className={`fixed inset-0 bg-slate-900/60 backdrop-blur-md-custom ${animClass.overlay}`} onClick={close} />
 
-      <div className="relative w-[90%] max-w-sm bg-white rounded-2xl p-6 shadow-2xl border border-slate-100 flex flex-col space-y-4 mx-auto">
+      <div className={`relative w-[90%] max-w-sm bg-white rounded-2xl p-6 shadow-2xl border border-slate-100 flex flex-col space-y-4 mx-auto ${animClass.panel}`}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
@@ -59,7 +61,7 @@ export default function ShareModal({ property, isOpen, onClose, onConfirmShare }
             <h3 className="font-display font-bold text-slate-950 text-base">Compartir Enlace</h3>
           </div>
           <button
-            onClick={onClose}
+            onClick={close}
             className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer transition-colors"
             aria-label="Cerrar"
           >

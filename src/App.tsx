@@ -28,6 +28,7 @@ import ConfirmModal from './components/ConfirmModal';
 import IdentityModal, { CompanySettings } from './components/IdentityModal';
 import AdminConsole from './components/AdminConsole';
 import FiltersBar from './components/FiltersBar';
+import { useModal, useSheetModal } from './hooks/useModal';
 import PropertyCard from './components/PropertyCard';
 
 // bundle-dynamic-imports: heavy modals loaded lazily (only when user triggers them)
@@ -119,6 +120,67 @@ const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
+/** 
+ * Wrapper para PropertyDetailSidebar que permite aplicar useModal a un estado de objeto (Property | null)
+ * de forma que mantenga el objeto vivo durante la animación de salida.
+ */
+function PropertyDetailModal({
+  property,
+  onClose,
+  onOpenBooking,
+  onRegisterClick,
+  onWhatsApp
+}: {
+  property: Property | null;
+  onClose: () => void;
+  onOpenBooking: () => void;
+  onRegisterClick: (id: string) => void;
+  onWhatsApp: (p: Property) => void;
+}) {
+  const { isVisible, animClass, close } = useModal(!!property, onClose);
+  const prevProperty = useRef<Property | null>(null);
+
+  useEffect(() => {
+    if (property) prevProperty.current = property;
+  }, [property]);
+
+  const displayProp = property || prevProperty.current;
+
+  if (!isVisible || !displayProp) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={displayProp.title}
+    >
+      <div
+        className={`fixed inset-0 bg-slate-900/70 backdrop-blur-sm ${animClass.overlay}`}
+        onClick={close}
+      />
+      <div className={`relative z-10 w-full max-w-lg max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col ${animClass.panel}`}>
+        <button
+          onClick={close}
+          className="absolute top-3 right-3 z-20 p-1.5 rounded-full bg-white/90 backdrop-blur-sm text-slate-500 hover:text-slate-900 hover:bg-white shadow-md transition-all cursor-pointer"
+          aria-label="Cerrar detalle de propiedad"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          <PropertyDetailSidebar
+            property={displayProp}
+            onClose={close}
+            onOpenBooking={onOpenBooking}
+            onRegisterClick={onRegisterClick}
+            onWhatsApp={onWhatsApp}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   // rerender-dependencies: stable constant ref avoids new string on every render
   const isMobile = useMediaQuery(MOBILE_QUERY);
@@ -182,6 +244,7 @@ export default function App() {
 
   // Admin auth modal
   const [showAdminAuthModal, setShowAdminAuthModal] = useState(false);
+  const { isVisible: isAuthVisible, animClass: authAnim, close: closeAuth } = useModal(showAdminAuthModal, () => setShowAdminAuthModal(false));
   const [adminAuthInput, setAdminAuthInput] = useState('');
   const [adminAuthError, setAdminAuthError] = useState(false);
   const [showAdminPassword, setShowAdminPassword] = useState(false);
@@ -874,42 +937,18 @@ export default function App() {
            A null fallback keeps the UX clean (modal mounts instantly once loaded). */}
       <Suspense fallback={null}>
 
-        {/* Property detail modal */}
-        {selectedProperty && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-label={selectedProperty.title}
-          >
-            <div
-              className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm"
-              onClick={() => setSelectedProperty(null)}
-            />
-            <div className="relative z-10 w-full max-w-lg max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col">
-              <button
-                onClick={() => setSelectedProperty(null)}
-                className="absolute top-3 right-3 z-20 p-1.5 rounded-full bg-white/90 backdrop-blur-sm text-slate-500 hover:text-slate-900 hover:bg-white shadow-md transition-all cursor-pointer"
-                aria-label="Cerrar detalle de propiedad"
-              >
-                <X className="h-4 w-4" />
-              </button>
-              <div className="flex-1 overflow-y-auto overscroll-contain">
-                <PropertyDetailSidebar
-                  property={selectedProperty}
-                  onClose={() => setSelectedProperty(null)}
-                  onOpenBooking={() => setShowBookingModal(true)}
-                  onRegisterClick={handleRegisterClick}
-                  onWhatsApp={(p) => {
-                    setWaModalProperty(p);
-                    setWaModalPhone(p.whatsappNumber);
-                    setShowWaModal(true);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Property detail modal - now uses wrapper component for animation */}
+        <PropertyDetailModal
+          property={selectedProperty}
+          onClose={() => setSelectedProperty(null)}
+          onOpenBooking={() => setShowBookingModal(true)}
+          onRegisterClick={handleRegisterClick}
+          onWhatsApp={(p) => {
+            setWaModalProperty(p);
+            setWaModalPhone(p.whatsappNumber);
+            setShowWaModal(true);
+          }}
+        />
 
         {/* Appointment form modal */}
         {showBookingModal && selectedProperty && (
@@ -973,7 +1012,7 @@ export default function App() {
         />
 
         {/* Admin Authentication Modal */}
-        {showAdminAuthModal ? (
+        {isAuthVisible ? (
           <div
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
             role="dialog"
@@ -982,10 +1021,10 @@ export default function App() {
           >
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm"
-              onClick={() => setShowAdminAuthModal(false)}
+              className={`fixed inset-0 bg-slate-900/70 backdrop-blur-sm ${authAnim.overlay}`}
+              onClick={closeAuth}
             />
-            <div className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border flex flex-col animate-in slide-in-from-bottom duration-300"
+            <div className={`relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border flex flex-col ${authAnim.panel}`}
               style={{ background: '#0f172b', borderColor: '#1e293b' }}
             >
               {/* Header */}
@@ -1002,12 +1041,11 @@ export default function App() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowAdminAuthModal(false)}
-                  className="p-1.5 rounded-lg transition-colors cursor-pointer"
-                  style={{ color: '#475569' }}
-                  aria-label="Cerrar"
-                >
-                  <X className="h-4 w-4" />
+                  onClick={closeAuth}
+                  className="p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                  style={{ color: '#64748b' }}
+                  aria-label="Cerrar modal de acceso"
+                >                <X className="h-4 w-4" />
                 </button>
               </div>
 

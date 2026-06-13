@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Property, Appointment, AnalyticsSummary } from '../types';
 import { Eye, Share2, Calendar, Sparkles, Phone, Mail, Clock, DollarSign, CalendarDays, RefreshCw, Trash2, Home, Activity, X, BarChart2 } from 'lucide-react';
+import { useModal } from '../hooks/useModal';
 
 // ─── Palette for properties (up to 10 distinct colors within brand palette) ───
 const PROPERTY_COLORS = [
@@ -23,9 +24,9 @@ interface TooltipInfo {
   dayLabel: string;
   dayTotal: number;
   allSegments: { propId: string; propTitle: string; clicks: number; color: string }[];
-  /* pixel coords relative to chart wrapper */
-  x: number;
-  y: number;
+  /** viewport pixel coords for fixed positioning */
+  vx: number;
+  vy: number;
 }
 
 interface AdminPanelProps {
@@ -44,6 +45,7 @@ export default function AdminPanel({
   onResetAnalytics
 }: AdminPanelProps) {
   const [showChartModal, setShowChartModal] = useState(false);
+  const { isVisible: isChartVisible, animClass: chartAnim, close: closeChart } = useModal(showChartModal, () => setShowChartModal(false));
   const [tooltip, setTooltip] = useState<TooltipInfo | null>(null);
   const [activeMobileBar, setActiveMobileBar] = useState<string | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
@@ -92,8 +94,8 @@ export default function AdminPanel({
 
   const maxDayTotal = Math.max(...chartDays.map(d => d.total), 1);
 
-  // Y-axis grid lines (5 steps)
-  const gridLines = [0, 1, 2, 3, 4].map(i => Math.round((maxDayTotal / 4) * i));
+  // Y-axis grid lines (5 steps) — deduplicated to avoid repeated labels
+  const gridLines = [...new Set([0, 1, 2, 3, 4].map(i => Math.round((maxDayTotal / 4) * i)))];
 
   return (
     <div className="space-y-6">
@@ -329,17 +331,17 @@ export default function AdminPanel({
       </div>
 
       {/* STACKED VERTICAL BAR CHART MODAL */}
-      {showChartModal && (
+      {isChartVisible && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm"
-            onClick={() => { setShowChartModal(false); setTooltip(null); setActiveMobileBar(null); }}
+            className={`fixed inset-0 bg-slate-900/70 backdrop-blur-sm ${chartAnim.overlay}`}
+            onClick={() => { closeChart(); setTooltip(null); setActiveMobileBar(null); }}
           />
 
           <div
-            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-100 flex flex-col"
-            style={{ animation: 'waModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)', maxHeight: '92vh' }}
+            className={`relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-100 flex flex-col ${chartAnim.panel}`}
+            style={{ maxHeight: '92vh' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50 shrink-0 rounded-t-2xl">
@@ -353,7 +355,7 @@ export default function AdminPanel({
                 </div>
               </div>
               <button
-                onClick={() => { setShowChartModal(false); setTooltip(null); setActiveMobileBar(null); }}
+                onClick={() => { closeChart(); setTooltip(null); setActiveMobileBar(null); }}
                 className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors text-slate-500 cursor-pointer shrink-0"
               >
                 <X className="h-4 w-4" />
@@ -446,8 +448,6 @@ export default function AdminPanel({
                                     onMouseEnter={(e) => {
                                       const segEl = e.currentTarget as HTMLElement;
                                       segEl.style.filter = 'brightness(1.25)';
-                                      if (!chartRef.current) return;
-                                      const chartRect = chartRef.current.getBoundingClientRect();
                                       const segRect = segEl.getBoundingClientRect();
                                       setTooltip({
                                         propTitle: seg.propTitle,
@@ -456,8 +456,9 @@ export default function AdminPanel({
                                         dayLabel: day.label,
                                         dayTotal: day.total,
                                         allSegments: day.segments,
-                                        x: segRect.left - chartRect.left + segRect.width / 2,
-                                        y: segRect.top - chartRect.top,
+                                        // viewport coords — tooltip uses position:fixed, never shifts layout
+                                        vx: segRect.left + segRect.width / 2,
+                                        vy: segRect.top,
                                       });
                                     }}
                                     onMouseLeave={(e) => {
@@ -488,25 +489,25 @@ export default function AdminPanel({
                     })}
                   </div>
 
-                  {/* Desktop tooltip — absolute inside chartRef */}
+                  {/* Desktop tooltip — fixed position so it NEVER affects layout */}
                   {tooltip && (
                     <div
-                      className="hidden sm:block absolute z-40 pointer-events-none"
+                      className="hidden sm:block fixed z-[100] pointer-events-none"
                       style={{
-                        left: tooltip.x,
-                        top: tooltip.y,
-                        transform: 'translate(-50%, calc(-100% - 8px))',
+                        left: tooltip.vx,
+                        top: tooltip.vy,
+                        transform: 'translate(-50%, calc(-100% - 10px))',
                       }}
                     >
                       <div
-                        className="rounded-xl shadow-xl px-3 py-2.5 text-white"
-                        style={{ background: '#0f172b', minWidth: 160 }}
+                        className="rounded-xl shadow-2xl px-3 py-2.5 text-white"
+                        style={{ background: '#0f172b', minWidth: 160, maxWidth: 200 }}
                       >
                         {/* Hovered segment headline */}
                         <div className="flex items-center gap-1.5 mb-1.5">
                           <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: tooltip.propColor }} />
-                          <span className="text-[10px] font-bold truncate" style={{ color: '#ffb900' }}>{tooltip.propTitle}</span>
-                          <span className="text-[10px] font-bold ml-auto shrink-0" style={{ color: '#ffb900' }}>{tooltip.propClicks}</span>
+                          <span className="text-[10px] font-bold truncate flex-1" style={{ color: '#ffb900' }}>{tooltip.propTitle}</span>
+                          <span className="text-[10px] font-bold ml-1 shrink-0" style={{ color: '#ffb900' }}>{tooltip.propClicks}</span>
                         </div>
                         {/* Divider */}
                         <div className="border-t mb-1.5" style={{ borderColor: '#1e293b' }} />
@@ -521,7 +522,7 @@ export default function AdminPanel({
                             </div>
                           ))}
                         </div>
-                        {/* Arrow */}
+                        {/* Arrow pointing down */}
                         <div
                           className="absolute left-1/2 -translate-x-1/2"
                           style={{

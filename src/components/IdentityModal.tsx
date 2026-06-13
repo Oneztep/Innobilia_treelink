@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { Sparkles, Building2, Upload, X } from 'lucide-react';
+import { useModal } from '../hooks/useModal';
 
 export interface CompanySettings {
   logoUrl: string;
@@ -33,6 +34,7 @@ export default function IdentityModal({
   focusField = 'all',
   onShowToast,
 }: IdentityModalProps) {
+  const { isVisible, animClass, close } = useModal(isOpen, onClose);
   const [draft, setDraft] = React.useState<CompanySettings>(companySettings);
 
   // Sync draft when modal opens with fresh settings
@@ -40,7 +42,7 @@ export default function IdentityModal({
     if (isOpen) setDraft(companySettings);
   }, [isOpen, companySettings]);
 
-  if (!isOpen) return null;
+  if (!isVisible) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,11 +88,11 @@ export default function IdentityModal({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
-        onClick={onClose}
+        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm ${animClass.overlay}`}
+        onClick={close}
       />
 
-      <div className="relative w-[90%] max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col mx-auto">
+      <div className={`relative w-[90%] max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col mx-auto ${animClass.panel}`}>
         {/* Header */}
         <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-1.5 text-slate-900">
@@ -103,7 +105,7 @@ export default function IdentityModal({
             </h3>
           </div>
           <button
-            onClick={onClose}
+            onClick={close}
             className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
             aria-label="Cerrar modal"
           >

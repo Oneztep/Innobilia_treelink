@@ -232,3 +232,45 @@ body::before {
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
   animation: bannerSlide 2.5s ease-in-out infinite;
 }
+
+/* ── Modal open/close animations ───────────────────────────────────────── */
+
+/* Overlay (backdrop) */
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes overlayOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Panel — scale-up spring on enter, scale-down fade on exit */
+@keyframes panelIn {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+@keyframes panelOut {
+  from { opacity: 1; transform: scale(1)    translateY(0);   }
+  to   { opacity: 0; transform: scale(0.96) translateY(6px); }
+}
+
+/* Bottom-sheet variant — slides up from bottom on mobile */
+@keyframes sheetIn {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes sheetOut {
+  from { opacity: 1; transform: translateY(0);    }
+  to   { opacity: 0; transform: translateY(100%); }
+}
+
+.modal-overlay-open  { animation: overlayIn  0.22s ease both; }
+.modal-overlay-close { animation: overlayOut 0.18s ease both; }
+
+.modal-panel-open    { animation: panelIn  0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.modal-panel-close   { animation: panelOut 0.18s cubic-bezier(0.4, 0, 1, 1) both; }
+
+.modal-sheet-open    { animation: sheetIn  0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.modal-sheet-close   { animation: sheetOut 0.2s  cubic-bezier(0.4, 0, 1, 1) both; }
+
