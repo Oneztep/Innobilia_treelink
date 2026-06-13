@@ -1066,7 +1066,7 @@ export default function App() {
                         if (e.key === 'Enter') {
                           if (adminAuthInput === companySettings.adminSecret) {
                             setRole('admin');
-                            setShowAdminAuthModal(false);
+                            closeAuth();
                             showToast('¡Bienvenido! Modo Administrador activado.');
                           } else {
                             setAdminAuthError(true);
@@ -1103,7 +1103,7 @@ export default function App() {
                   onClick={() => {
                     if (adminAuthInput === companySettings.adminSecret) {
                       setRole('admin');
-                      setShowAdminAuthModal(false);
+                      closeAuth();
                       showToast('¡Bienvenido! Modo Administrador activado.');
                     } else {
                       setAdminAuthError(true);

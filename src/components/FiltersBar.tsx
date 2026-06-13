@@ -183,7 +183,7 @@ export default function FiltersBar({
           {role === 'admin' && onAddProperty && (
             <button
               onClick={onAddProperty}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white font-bold text-xs shadow hover:-translate-y-0.5 transition-transform"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white font-bold text-xs shadow hover:-translate-y-0.5 transition-transform"
               style={{ background: '#ffb900' }}
             >
               <Plus className="h-3.5 w-3.5" />
