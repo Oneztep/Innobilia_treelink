@@ -283,25 +283,32 @@ body::before {
   from { opacity: 1; }
   to   { opacity: 0; }
 }
-@keyframes lightboxImgEnter {
-  from { opacity: 0; transform: scale(0.97); }
+@keyframes lightboxImgIn {
+  from { opacity: 0; transform: scale(0.96); }
   to   { opacity: 1; transform: scale(1); }
 }
-@keyframes lightboxImgExitLeft {
-  from { opacity: 1; transform: translateX(0); }
-  to   { opacity: 0; transform: translateX(-40px); }
-}
-@keyframes lightboxImgExitRight {
-  from { opacity: 1; transform: translateX(0); }
-  to   { opacity: 0; transform: translateX(40px); }
-}
-
-.lightbox-open  { animation: lightboxIn  0.22s ease both; }
-.lightbox-close { animation: lightboxOut 0.18s ease both; }
-
-.lightbox-img-enter      { animation: lightboxImgEnter     0.25s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.lightbox-img-exit-left  { animation: lightboxImgExitLeft  0.15s ease both; }
-.lightbox-img-exit-right { animation: lightboxImgExitRight 0.15s ease both; }
 
 /* cursor zoom for carousel images */
 .cursor-zoom-in { cursor: zoom-in; }
+
+/* ── Skeleton loading shimmer ────────────────────────────────────────────── */
+@keyframes skeletonShimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 25%,
+    #e2e8f0 50%,
+    #f1f5f9 75%
+  );
+  background-size: 800px 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-card {
+  background: #fff;
+  animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

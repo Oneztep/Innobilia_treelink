@@ -218,6 +218,8 @@ export default function App() {
   // 2. UI / Role state
   const [role, setRole] = useState<'client' | 'admin'>('client');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  // Loading state: true while DB sync is in flight (structure renders from localStorage immediately)
+  const [isDbSyncing, setIsDbSyncing] = useState(true);
 
   // 3. Filters
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
@@ -257,17 +259,17 @@ export default function App() {
 
   // ─── Persistence effects ───────────────────────────────────────────────────
 
-  // Load and sync data from Supabase on mount
+  // Load and sync data from Supabase on mount.
+  // Strategy: defer the DB fetch to after the first paint so the page
+  // shell (from localStorage) renders instantly, then data fills in.
   useEffect(() => {
     async function loadData() {
       try {
         // 1. Fetch properties
         const dbProperties = await fetchProperties();
         if (dbProperties && dbProperties.length > 0) {
-          // Supabase has data — use it
           setProperties(dbProperties);
         } else {
-          // Supabase table is empty — use initial demo data and seed DB for the first time
           setProperties(INITIAL_PROPERTIES);
           for (const prop of INITIAL_PROPERTIES) {
             await upsertProperty(prop);
@@ -283,10 +285,8 @@ export default function App() {
         // 3. Fetch company settings
         const dbSettings = await fetchCompanySettings();
         if (dbSettings && dbSettings.name) {
-          // Supabase has settings — merge with defaults
           setCompanySettings(prev => ({ ...prev, ...dbSettings }));
         } else {
-          // First time: seed default settings into Supabase
           await upsertCompanySettings(DEFAULT_COMPANY_SETTINGS);
         }
 
@@ -299,7 +299,6 @@ export default function App() {
           propertyShares: {},
           dailyClicks: {},
         };
-
         const updatedAnalytics = {
           ...currentAnalytics,
           totalVisits: (currentAnalytics.totalVisits || 0) + 1,
@@ -309,10 +308,17 @@ export default function App() {
         await upsertAnalytics(updatedAnalytics);
       } catch (err) {
         console.warn('[innobilia] Error syncing with Supabase:', err);
+      } finally {
+        setIsDbSyncing(false);
       }
     }
 
-    loadData();
+    // Defer DB fetch until after first paint so the structure renders immediately
+    if ('requestIdleCallback' in window) {
+      (window as Window & { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(loadData);
+    } else {
+      setTimeout(loadData, 0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -499,7 +505,7 @@ export default function App() {
 
   const handleWhatsAppLeadSubmit = (data: { name: string; phone: string; date: string; time: string; budget: string; notes: string; }) => {
     incrementWhatsAppLeads();
-    
+
     // Create new appointment for the admin dashboard
     const newApt: Appointment = {
       id: `app-wa-${Date.now()}`,
@@ -811,12 +817,42 @@ export default function App() {
           {/* Property cards list */}
           {/* rendering-content-visibility: browser skips layout/paint for off-screen cards */}
           <div className="space-y-3" style={{ contentVisibility: 'auto', containIntrinsicSize: '0 500px' }}>
-            <h3 className="font-mono text-[10px] uppercase tracking-widest font-bold px-1"
-              style={{ color: '#a8a29e' }}>
-              Cartera de Propiedades — {filteredProperties.length} disponible{filteredProperties.length !== 1 ? 's' : ''}
-            </h3>
+            <div className="flex items-center justify-between px-1">
+              <h3 className="font-mono text-[10px] uppercase tracking-widest font-bold"
+                style={{ color: '#a8a29e' }}>
+                Cartera de Propiedades — {filteredProperties.length} disponible{filteredProperties.length !== 1 ? 's' : ''}
+              </h3>
+              {/* Subtle DB sync indicator */}
+              {isDbSyncing && (
+                <span className="flex items-center gap-1 text-[9px] font-mono px-2 py-0.5 rounded-full"
+                  style={{ background: 'rgba(255,185,0,0.08)', color: '#cc9a00', border: '1px solid rgba(255,185,0,0.2)' }}>
+                  <span className="inline-block h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: '#ffb900' }} />
+                  Actualizando
+                </span>
+              )}
+            </div>
 
-            {filteredProperties.length === 0 ? (
+            {/* Skeleton cards shown while syncing and no cached properties */}
+            {isDbSyncing && filteredProperties.length === 0 ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="skeleton-card flex gap-0 overflow-hidden rounded-2xl border border-slate-100"
+                    style={{ animationDelay: `${i * 0.08}s` }}>
+                    <div className="skeleton-shimmer w-40 h-28 shrink-0 rounded-l-2xl" />
+                    <div className="flex-1 p-4 space-y-2.5">
+                      <div className="skeleton-shimmer h-3.5 w-3/4 rounded-lg" />
+                      <div className="skeleton-shimmer h-2.5 w-1/2 rounded-lg" />
+                      <div className="flex gap-2 pt-1">
+                        <div className="skeleton-shimmer h-2 w-12 rounded" />
+                        <div className="skeleton-shimmer h-2 w-12 rounded" />
+                        <div className="skeleton-shimmer h-2 w-12 rounded" />
+                      </div>
+                      <div className="skeleton-shimmer h-6 w-24 rounded-lg mt-auto" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProperties.length === 0 ? (
               <div className="text-center p-10 rounded-2xl border"
                 style={{ background: 'rgba(248,250,252,0.9)', borderColor: '#e2e8f0', color: '#94a3b8' }}>
                 <Info className="h-8 w-8 mx-auto mb-3" style={{ color: '#cbd5e1' }} />
