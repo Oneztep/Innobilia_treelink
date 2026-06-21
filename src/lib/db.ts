@@ -104,7 +104,7 @@ export async function fetchProperties(): Promise<Property[] | null> {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.warn('[db] fetchProperties error:', error.message);
+    console.error('[db] fetchProperties error:', error.code, error.message, error.hint, error.details);
     return null;
   }
   return data.map(toProperty);
@@ -117,7 +117,7 @@ export async function upsertProperty(property: Property): Promise<boolean> {
     .upsert(toPropertyRow(property), { onConflict: 'id' });
 
   if (error) {
-    console.warn('[db] upsertProperty error:', error.message);
+    console.error('[db] upsertProperty error:', error.code, error.message, error.hint, error.details);
     return false;
   }
   return true;

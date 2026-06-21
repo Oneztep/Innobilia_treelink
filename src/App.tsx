@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useTransition, lazy, Suspense } from 'react';
 import { Property, Appointment, AnalyticsSummary } from './types';
 import { INITIAL_PROPERTIES, INITIAL_APPOINTMENTS } from './initialData';
+import { supabase } from './lib/supabase.ts';
 
 // Storage helper (js-cache-storage + advanced-init-once: migration runs at module load)
 import { lsGet, lsSet } from './lib/storage';
+
 
 // Supabase DB operations
 import {
@@ -181,6 +183,8 @@ function PropertyDetailModal({
   );
 }
 
+
+
 export default function App() {
   // rerender-dependencies: stable constant ref avoids new string on every render
   const isMobile = useMediaQuery(MOBILE_QUERY);
@@ -257,24 +261,59 @@ export default function App() {
   // 6. Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const handleAdminLogin = async () => {
+    if (adminAuthInput === companySettings.adminSecret) {
+
+      // Mostramos un toast o estado de carga opcional si deseas, ya que esto toma un segundo
+      try {
+        // INICIO DE SESIÓN OCULTO EN SUPABASE
+        // Reemplaza esto con un correo y clave que registres en Authentication de Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: "[EMAIL_ADDRESS]",
+          password: "[PASSWORD]"
+        });
+
+        if (error) {
+          console.error("Error crítico autenticando en Supabase:", error.message);
+          // Opcional: puedes alertar al desarrollador, pero dejamos pasar al admin localmente si lo deseas
+        }
+      } catch (err) {
+        console.error("Fallo de red con Supabase:", err);
+      }
+
+      // Flujo normal de tu interfaz
+      setRole('admin');
+      closeAuth();
+      showToast('¡Bienvenido! Modo Administrador activado.');
+    } else {
+      setAdminAuthError(true);
+    }
+  };
+
   // ─── Persistence effects ───────────────────────────────────────────────────
 
   // Load and sync data from Supabase on mount.
   // Strategy: defer the DB fetch to after the first paint so the page
   // shell (from localStorage) renders instantly, then data fills in.
+
+
   useEffect(() => {
     async function loadData() {
       try {
         // 1. Fetch properties
         const dbProperties = await fetchProperties();
         if (dbProperties && dbProperties.length > 0) {
+          // DB has data — use it as source of truth
           setProperties(dbProperties);
-        } else {
+          lsSet('innobilia_properties', dbProperties);
+        } else if (dbProperties !== null && dbProperties.length === 0) {
+          // DB returned empty array (first run) — seed with initial data
           setProperties(INITIAL_PROPERTIES);
           for (const prop of INITIAL_PROPERTIES) {
             await upsertProperty(prop);
           }
         }
+        // If dbProperties is null (Supabase error/offline), keep whatever is in state (from localStorage)
 
         // 2. Fetch appointments
         const dbAppointments = await fetchAppointments();
@@ -377,7 +416,7 @@ export default function App() {
 
   // ─── Property handlers ─────────────────────────────────────────────────────
 
-  const handleSaveProperty = (
+  const handleSaveProperty = async (
     newPropertyData: Omit<Property, 'clicks' | 'shares' | 'createdAt'> & { id?: string }
   ) => {
     if (newPropertyData.id) {
@@ -386,23 +425,33 @@ export default function App() {
         const updated = { ...existing, ...newPropertyData };
         setProperties(prev => prev.map(p => p.id === newPropertyData.id ? updated : p));
         if (selectedProperty?.id === existing.id) setSelectedProperty(updated);
-        showToast('Propiedad actualizada con éxito.');
-        // Async save to Supabase
-        upsertProperty(updated);
+        // Save to Supabase and verify
+        const ok = await upsertProperty(updated);
+        if (ok) {
+          showToast('Propiedad actualizada con éxito.');
+        } else {
+          showToast('Propiedad guardada localmente (sin conexión con Supabase).');
+          console.warn('[innobilia] upsertProperty failed for id:', updated.id);
+        }
       }
     } else {
       const freshProperty: Property = {
         ...newPropertyData,
-        id: `prop-${Date.now()}`,
+        id: crypto.randomUUID(),
         clicks: 0,
         shares: 0,
         createdAt: new Date().toISOString(),
       };
       setProperties(prev => [freshProperty, ...prev]);
       setSelectedProperty(freshProperty);
-      showToast('Nueva propiedad publicada en el Linktree.');
-      // Async save to Supabase
-      upsertProperty(freshProperty);
+      // Save to Supabase and verify
+      const ok = await upsertProperty(freshProperty);
+      if (ok) {
+        showToast('Nueva propiedad publicada en el Linktree.');
+      } else {
+        showToast('Propiedad guardada localmente (sin conexión con Supabase).');
+        console.warn('[innobilia] upsertProperty failed for new property:', freshProperty.id);
+      }
     }
     setEditingProperty(null);
   };
@@ -1100,13 +1149,7 @@ export default function App() {
                       onChange={(e) => { setAdminAuthInput(e.target.value); setAdminAuthError(false); }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
-                          if (adminAuthInput === companySettings.adminSecret) {
-                            setRole('admin');
-                            closeAuth();
-                            showToast('¡Bienvenido! Modo Administrador activado.');
-                          } else {
-                            setAdminAuthError(true);
-                          }
+                          handleAdminLogin();
                         }
                       }}
                       className="w-full rounded-xl border px-4 py-2.5 pr-11 text-sm focus:outline-none font-mono"
@@ -1136,15 +1179,7 @@ export default function App() {
                 </div>
 
                 <button
-                  onClick={() => {
-                    if (adminAuthInput === companySettings.adminSecret) {
-                      setRole('admin');
-                      closeAuth();
-                      showToast('¡Bienvenido! Modo Administrador activado.');
-                    } else {
-                      setAdminAuthError(true);
-                    }
-                  }}
+                  onClick={handleAdminLogin}
                   className="w-full py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 cursor-pointer"
                   style={{ background: '#ffb900', color: '#0f172b' }}
                 >

@@ -77,22 +77,25 @@ const PropertyCard = memo(function PropertyCard({
       `}
     >
       {/* Image thumbnail */}
-      <div className="relative w-full sm:w-40 h-28 sm:h-auto overflow-hidden shrink-0 bg-stone-100 rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none">
-        <img
-          src={p.images[0]}
-          alt={p.title}
-          className="w-full h-full object-cover group-hover:scale-[1.06] transition-transform duration-500 ease-out"
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          onError={(e) => {
-            const el = e.currentTarget;
-            el.style.display = 'none';
-            const wrapper = document.createElement('div');
-            wrapper.className = 'w-full h-full flex flex-col items-center justify-center gap-1 text-stone-300';
-            wrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg><span style="font-size:9px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em">Sin imagen</span>`;
-            el.parentElement?.appendChild(wrapper);
-          }}
-        />
+      <div className="relative w-full h-28 sm:w-40 sm:h-auto overflow-hidden shrink-0 bg-stone-100 rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none">
+        <div className="w-full aspect-[4/2] md:aspect-square ">
+          <img
+            src={p.images[0]}
+            alt={p.title}
+            className="w-full h-full object-cover group-hover:scale-[1.06] transition-transform duration-500 ease-out  "
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              const el = e.currentTarget;
+              el.style.display = 'none';
+              const wrapper = document.createElement('div');
+              wrapper.className = 'w-full h-full flex flex-col items-center justify-center gap-1 text-stone-300';
+              wrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg><span style="font-size:9px;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em">Sin imagen</span>`;
+              el.parentElement?.appendChild(wrapper);
+            }}
+
+          />
+        </div>
         {/* Price badge — icon palette */}
         <div className="price-badge absolute top-2.5 left-2.5 px-2.5 py-1 backdrop-blur-sm font-mono text-[10px] font-bold rounded-lg shadow-lg"
           style={{ background: 'rgba(15,23,43,0.92)', color: '#ffb900', border: '1px solid rgba(255,185,0,0.25)' }}>
