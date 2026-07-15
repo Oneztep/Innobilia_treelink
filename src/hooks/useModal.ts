@@ -36,8 +36,15 @@ export function useModal(isOpen: boolean, onClose: () => void): UseModalReturn {
     if (isOpen) {
       setClosing(false);
       setIsVisible(true);
+    } else if (isVisible) {
+      setClosing(true);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        setClosing(false);
+      }, CLOSE_DURATION_MS);
+      return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, isVisible]);
 
   const close = useCallback(() => {
     setClosing(true);
@@ -50,7 +57,7 @@ export function useModal(isOpen: boolean, onClose: () => void): UseModalReturn {
 
   const animClass: ModalAnimClasses = {
     overlay: closing ? 'modal-overlay-close' : 'modal-overlay-open',
-    panel:   closing ? 'modal-panel-close'   : 'modal-panel-open',
+    panel: closing ? 'modal-panel-close' : 'modal-panel-open',
   };
 
   return { isVisible, animClass, close };
@@ -68,8 +75,15 @@ export function useSheetModal(isOpen: boolean, onClose: () => void): UseModalRet
     if (isOpen) {
       setClosing(false);
       setIsVisible(true);
+    } else if (isVisible) {
+      setClosing(true);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        setClosing(false);
+      }, CLOSE_DURATION_MS);
+      return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, isVisible]);
 
   const close = useCallback(() => {
     setClosing(true);
@@ -82,7 +96,7 @@ export function useSheetModal(isOpen: boolean, onClose: () => void): UseModalRet
 
   const animClass: ModalAnimClasses = {
     overlay: closing ? 'modal-overlay-close' : 'modal-overlay-open',
-    panel:   closing ? 'modal-sheet-close'   : 'modal-sheet-open',
+    panel: closing ? 'modal-sheet-close' : 'modal-sheet-open',
   };
 
   return { isVisible, animClass, close };

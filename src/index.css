@@ -9,41 +9,51 @@
   --font-mono: "DM Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* Icon palette — #0f172b dark / #ffb900 gold / #fe9a00 signal */
-  --color-ink:       #0a0f1e;
-  --color-ink-soft:  #0f172b;
-  --color-gold:      #ffb900;
-  --color-gold-lt:   #ffd040;
-  --color-gold-dim:  #cc9a00;
-  --color-signal:    #fe9a00;
+  --color-ink: #0a0f1e;
+  --color-ink-soft: #0f172b;
+  --color-gold: #ffb900;
+  --color-gold-lt: #ffd040;
+  --color-gold-dim: #cc9a00;
+  --color-signal: #fe9a00;
   --color-signal-lt: #ffc340;
-  --color-cream:     #faf9f7;
+  --color-cream: #faf9f7;
   --color-cream-dim: #f1f0ec;
-  --color-slate-1:   #1e293b;
-  --color-slate-2:   #334155;
-  --color-slate-3:   #64748b;
-  --color-slate-4:   #94a3b8;
+  --color-slate-1: #1e293b;
+  --color-slate-2: #334155;
+  --color-slate-3: #64748b;
+  --color-slate-4: #94a3b8;
+
+  /* Custom easings */
+  --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────── */
 @layer base {
+
   /* Hover-only scrollbar for clean modals */
   .scrollbar-hover::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
+
   .scrollbar-hover::-webkit-scrollbar-track {
     background: transparent;
   }
+
   .scrollbar-hover::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 10px;
   }
+
   .scrollbar-hover:hover::-webkit-scrollbar-thumb,
   .scrollbar-hover:active::-webkit-scrollbar-thumb {
-    background: rgba(100, 116, 139, 0.5); /* slate-500 semi-transparent */
+    background: rgba(100, 116, 139, 0.5);
+    /* slate-500 semi-transparent */
   }
 
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
   }
 
@@ -61,10 +71,35 @@
   }
 
   /* Scrollbar minimalista */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Reset dialog styles so it works correctly with Tailwind fixed full-screen classes */
+  dialog {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    max-width: 100vw;
+    max-height: 100vh;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 /* ── Grain overlay ──────────────────────────────────────────────────────── */
@@ -80,7 +115,10 @@ body::before {
 }
 
 /* El contenido va sobre el grain */
-#root { position: relative; z-index: 1; }
+#root {
+  position: relative;
+  z-index: 1;
+}
 
 /* ── Blur backdrop ──────────────────────────────────────────────────────── */
 .backdrop-blur-md-custom {
@@ -95,19 +133,40 @@ body::before {
 
 /* ── FiltersBar dropdown (rendering-hoist-jsx: moved from inline style tag) ── */
 @keyframes selectDropIn {
-  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 99px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
 
 /* ── Design-token focus ring — luxury icon gold (#ffb900) ───────────────── */
 /* Overrides Tailwind amber focus so every input uses the exact icon palette. */
 [class*="focus:border-amber"]:focus {
   border-color: #ffb900 !important;
 }
+
 [class*="focus:ring-amber"]:focus {
   --tw-ring-color: rgba(255, 185, 0, 0.2);
   box-shadow: 0 0 0 3px rgba(255, 185, 0, 0.2) !important;
@@ -120,7 +179,7 @@ body::before {
   box-shadow:
     0 0 0 1.5px rgba(255, 185, 0, 0.7),
     0 8px 32px rgba(255, 185, 0, 0.14),
-    0 2px 8px rgba(0,0,0,0.06);
+    0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .property-card-selected::before {
@@ -141,16 +200,30 @@ body::before {
 }
 
 @keyframes goldShimmer {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* ── Carousel animation ─────────────────────────────────────────────────── */
 @keyframes carouselFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
 .carousel-img-enter {
   animation: carouselFadeIn 0.35s ease-out;
 }
@@ -159,30 +232,65 @@ body::before {
 .carousel-container img {
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .carousel-container:hover img {
   transform: scale(1.06);
 }
 
 /* ── Staggered fade-up for property cards ───────────────────────────────── */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .fade-up {
   animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.fade-up-1 { animation-delay: 0.05s; }
-.fade-up-2 { animation-delay: 0.10s; }
-.fade-up-3 { animation-delay: 0.15s; }
-.fade-up-4 { animation-delay: 0.20s; }
-.fade-up-5 { animation-delay: 0.25s; }
-.fade-up-6 { animation-delay: 0.30s; }
+
+.fade-up-1 {
+  animation-delay: 0.05s;
+}
+
+.fade-up-2 {
+  animation-delay: 0.10s;
+}
+
+.fade-up-3 {
+  animation-delay: 0.15s;
+}
+
+.fade-up-4 {
+  animation-delay: 0.20s;
+}
+
+.fade-up-5 {
+  animation-delay: 0.25s;
+}
+
+.fade-up-6 {
+  animation-delay: 0.30s;
+}
 
 /* ── Gold badge pulse ───────────────────────────────────────────────────── */
 @keyframes pricePulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 185, 0, 0.5); }
-  50%       { box-shadow: 0 0 0 4px rgba(255, 185, 0, 0); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 185, 0, 0.5);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(255, 185, 0, 0);
+  }
 }
+
 .price-badge {
   animation: pricePulse 2.5s ease-in-out infinite;
 }
@@ -210,18 +318,32 @@ body::before {
 
 /* ── Toast ──────────────────────────────────────────────────────────────── */
 @keyframes toastIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.96); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
+
 .toast-enter {
   animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ── Admin banner pulse line ────────────────────────────────────────────── */
 @keyframes bannerSlide {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(100%); }
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
 }
+
 .banner-shine::after {
   content: '';
   position: absolute;
@@ -229,7 +351,7 @@ body::before {
   bottom: 0;
   left: 0;
   width: 60%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
   animation: bannerSlide 2.5s ease-in-out infinite;
 }
 
@@ -237,73 +359,153 @@ body::before {
 
 /* Overlay (backdrop) */
 @keyframes overlayIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
 @keyframes overlayOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 
 /* Panel — scale-up spring on enter, scale-down fade on exit */
 @keyframes panelIn {
-  from { opacity: 0; transform: scale(0.94) translateY(8px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
+
 @keyframes panelOut {
-  from { opacity: 1; transform: scale(1)    translateY(0);   }
-  to   { opacity: 0; transform: scale(0.96) translateY(6px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
 }
 
 /* Bottom-sheet variant — slides up from bottom on mobile */
 @keyframes sheetIn {
-  from { opacity: 0; transform: translateY(100%); }
-  to   { opacity: 1; transform: translateY(0);    }
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 @keyframes sheetOut {
-  from { opacity: 1; transform: translateY(0);    }
-  to   { opacity: 0; transform: translateY(100%); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
 }
 
-.modal-overlay-open  { animation: overlayIn  0.22s ease both; }
-.modal-overlay-close { animation: overlayOut 0.18s ease both; }
+.modal-overlay-open {
+  animation: overlayIn 0.22s ease both;
+}
 
-.modal-panel-open    { animation: panelIn  0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.modal-panel-close   { animation: panelOut 0.18s cubic-bezier(0.4, 0, 1, 1) both; }
+.modal-overlay-close {
+  animation: overlayOut 0.18s ease both;
+}
 
-.modal-sheet-open    { animation: sheetIn  0.32s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.modal-sheet-close   { animation: sheetOut 0.2s  cubic-bezier(0.4, 0, 1, 1) both; }
+.modal-panel-open {
+  animation: panelIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.modal-panel-close {
+  animation: panelOut 0.18s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.modal-sheet-open {
+  animation: sheetIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.modal-sheet-close {
+  animation: sheetOut 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
 
 /* ── Lightbox fullscreen gallery ─────────────────────────────────────────── */
 @keyframes lightboxIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
 @keyframes lightboxOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
+
 @keyframes lightboxImgIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* cursor zoom for carousel images */
-.cursor-zoom-in { cursor: zoom-in; }
+.cursor-zoom-in {
+  cursor: zoom-in;
+}
 
 /* ── Skeleton loading shimmer ────────────────────────────────────────────── */
 @keyframes skeletonShimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position:  400px 0; }
+  0% {
+    background-position: -400px 0;
+  }
+
+  100% {
+    background-position: 400px 0;
+  }
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(
-    90deg,
-    #f1f5f9 25%,
-    #e2e8f0 50%,
-    #f1f5f9 75%
-  );
+  background: linear-gradient(90deg,
+      #f1f5f9 25%,
+      #e2e8f0 50%,
+      #f1f5f9 75%);
   background-size: 800px 100%;
   animation: skeletonShimmer 1.4s ease-in-out infinite;
 }

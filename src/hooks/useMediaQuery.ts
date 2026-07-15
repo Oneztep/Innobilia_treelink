@@ -26,15 +26,13 @@ export function useMediaQuery(query: string): boolean {
       setMatches(event.matches);
     };
 
-    // Usar addEventListener si está disponible (moderno), addListener como fallback
-    if (mediaQueryList.addEventListener) {
-      mediaQueryList.addEventListener('change', listener);
-      return () => mediaQueryList.removeEventListener('change', listener);
-    } else {
-      // Fallback para Safari < 14
-      mediaQueryList.addListener(listener);
-      return () => mediaQueryList.removeListener(listener);
-    }
+    // Usamos el estándar moderno directamente
+    mediaQueryList.addEventListener('change', listener);
+
+    // Retorno limpio y directo sin condicionales que confundan al linter
+    return () => {
+      mediaQueryList.removeEventListener('change', listener);
+    };
   }, [query]);
 
   return matches;

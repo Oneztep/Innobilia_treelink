@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, experimental_useEffectEvent as useEffectEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Property } from '../types';
 import {
@@ -15,6 +15,7 @@ interface PropertyDetailSidebarProps {
   onOpenBooking: () => void;
   onRegisterClick: (id: string) => void;
   onWhatsApp?: (p: Property) => void;
+  dialogRef: React.RefObject<HTMLDialogElement>;
 }
 
 // ─── Lightbox ──────────────────────────────────────────────────────────────────
@@ -36,10 +37,12 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
   const [mouseDown, setMouseDown] = useState(false);
 
   // Refs for reading latest state inside imperative handlers (no stale closures)
-  const zoomRef = useRef(1);
-  zoomRef.current = zoom;
+  const zoomRef = useRef(zoom);
   const panRef = useRef(pan);
-  panRef.current = pan;
+  useEffect(() => {
+    zoomRef.current = zoom;
+    panRef.current = pan;
+  }, [zoom, pan]);
 
   const isDragging = useRef(false);
   const dragStart = useRef({ mx: 0, my: 0, px: 0, py: 0 });
@@ -47,6 +50,11 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
   const swipeStartX = useRef<number | null>(null);
   const closingRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const imagesLengthRef = useRef(images.length);
+
+  if (imagesLengthRef.current === null) {
+    imagesLengthRef.current = images.length; // Se actualiza silenciosamente si cambian las fotos
+  }
 
   // ── Close with animation ────────────────────────────────────────────────────
   const handleClose = useCallback(() => {
@@ -57,7 +65,7 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
   }, [onClose]);
 
   // ── Navigate images ─────────────────────────────────────────────────────────
-  const navigate = useCallback((dir: 'prev' | 'next') => {
+  const navigate = useEffectEvent((dir: 'prev' | 'next') => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
     zoomRef.current = 1;
@@ -66,20 +74,38 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
         ? (prev + 1) % images.length
         : (prev - 1 + images.length) % images.length
     );
-  }, [images.length]);
+  });
+  const onKeyboardNavigate = useEffectEvent((direction: 'next' | 'prev') => {
+    navigate(direction);
+  });
 
   // ── Keyboard navigation ─────────────────────────────────────────────────────
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleClose();
-      if (e.key === 'ArrowRight') navigate('next');
-      if (e.key === 'ArrowLeft') navigate('prev');
-      if (e.key === '+' || e.key === '=') setZoom(z => Math.min(5, +(z + 0.3).toFixed(2)));
-      if (e.key === '-') setZoom(z => { const n = Math.max(1, +(z - 0.3).toFixed(2)); if (n <= 1) setPan({ x: 0, y: 0 }); return n; });
+      if (e.key === 'ArrowRight') onKeyboardNavigate('next');
+      if (e.key === 'ArrowLeft') onKeyboardNavigate('prev');
+      if (e.key === '+' || e.key === '=') setZoom((z: number) => Math.min(5, +(z + 0.3).toFixed(2)));
+      if (e.key === '-') {
+
+        // 1. Actualizamos el zoom de forma limpia
+        setZoom((z: number) => {
+          // 2. Calculamos el nuevo valor de zoom usando el valor actual 'zoom'
+          const nextZoom = Math.max(1, +(z - 0.3).toFixed(2));
+
+          // 3. Si el zoom llegó al mínimo, reseteamos el paneo de forma segura aquí afuera
+          if (nextZoom <= 1) {
+            setPan({ x: 0, y: 0 });
+          }
+          return nextZoom
+
+        });
+
+      }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, [navigate, handleClose]);
+  }, [handleClose]);
 
   // ── Body scroll lock ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -95,10 +121,16 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
     const handler = (e: WheelEvent) => {
       e.preventDefault();
       const delta = e.deltaY < 0 ? 0.18 : -0.18;
-      setZoom(prev => {
-        const next = Math.max(1, Math.min(5, +(prev + delta).toFixed(2)));
-        if (next <= 1) setPan({ x: 0, y: 0 });
-        return next;
+
+      // 2. Actualizamos el zoom directamente con el valor limpio
+      setZoom((z: number) => {
+        const nextZoom = Math.max(1, Math.min(5, +(z + delta).toFixed(2)));
+
+        // 3. Ejecutamos el efecto secundario de forma segura aquí afuera
+        if (nextZoom <= 1) {
+          setPan({ x: 0, y: 0 });
+        }
+        return nextZoom
       });
     };
     el.addEventListener('wheel', handler, { passive: false });
@@ -141,11 +173,18 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
         const dist = Math.hypot(dx, dy);
         if (lastPinchDist.current) {
           const ratio = dist / lastPinchDist.current;
-          setZoom(z => {
-            const next = Math.max(1, Math.min(5, +(z * ratio).toFixed(3)));
-            if (next <= 1) setPan({ x: 0, y: 0 });
-            return next;
+
+          // 2. Pasamos el valor limpio directamente a setZoom
+          setZoom((z: number) => {
+            const nextZoom = Math.max(1, Math.min(5, +(z * ratio).toFixed(3)));
+            // 3. Ejecutamos el efecto secundario de forma segura aquí afuera
+            if (nextZoom <= 1) {
+              setPan({ x: 0, y: 0 });
+            }
+            return nextZoom;
           });
+
+
         }
         lastPinchDist.current = dist;
       } else if (isDragging.current && zoomRef.current > 1) {
@@ -166,8 +205,8 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
         if (Math.abs(dx) >= 40) {
           setZoom(1);
           setPan({ x: 0, y: 0 });
-          if (dx < 0) setIndex(prev => (prev + 1) % images.length);
-          else setIndex(prev => (prev - 1 + images.length) % images.length);
+          if (dx < 0) setIndex((prev: number) => (prev + 1) % imagesLengthRef.current);
+          else setIndex((prev: number) => (prev - 1 + imagesLengthRef.current) % imagesLengthRef.current);
         }
       }
       swipeStartX.current = null;
@@ -178,7 +217,7 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
     el.addEventListener('touchend', onEnd, { signal: sig, passive: true });
 
     return () => ctrl.abort();
-  }, [images.length]);
+  }, []);
 
   // ── Mouse drag to pan when zoomed ──────────────────────────────────────────
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -189,7 +228,6 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
   };
 
   useEffect(() => {
-    if (!mouseDown) return;
     const move = (e: MouseEvent) => {
       if (!isDragging.current) return;
       setPan({
@@ -197,11 +235,11 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
         y: dragStart.current.py + e.clientY - dragStart.current.my,
       });
     };
-    const up = () => { isDragging.current = false; setMouseDown(false); };
+    const up = () => { if (!isDragging.current) return; isDragging.current = false; setMouseDown(false); };
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
     return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
-  }, [mouseDown]);
+  }, []);
 
   // ── Go to index from dots/thumbnails ───────────────────────────────────────
   const goTo = (i: number) => {
@@ -214,86 +252,77 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
   // Use explicit top/left/right/bottom instead of inset for broadest compatibility.
   // Use Number.MAX_SAFE_INTEGER-capped z-index to guarantee being on top of everything.
   const content = (
-    <div
+    <dialog
+      className='fixed inset-0 z-[2147483647] flex flex-col overflow-hidden'
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 2147483647,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
         animation: closing ? 'lightboxOut 0.2s ease forwards' : 'lightboxIn 0.22s ease forwards',
       }}
-      role="dialog"
       aria-modal="true"
       aria-label={`Galería: ${title}`}
     >
       {/* Dark blurred backdrop — covers entire viewport */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(6, 9, 18, 0.96)',
-          backdropFilter: 'blur(32px) saturate(1.8)',
-          WebkitBackdropFilter: 'blur(32px) saturate(1.8)',
-        }}
-        onClick={zoom <= 1 ? handleClose : undefined}
-      />
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-[#060912]/96 blur-[8px] transform-gpu scale-110 [backdrop-filter:blur(8px)_saturate(1.8)]"
+          aria-label='close'
+          onClick={zoom <= 1 ? handleClose : undefined}
+          role="button"
+          tabIndex={0}
+        />
+      </div>
 
       {/* Main interaction layer */}
       <div
         ref={containerRef}
+        className="relative z-1 flex flex-col w-full h-full"
         style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          width: '100%',
-          height: '100%',
           touchAction: zoom > 1 ? 'none' : 'pan-y',
         }}
       >
         {/* ── Top bar ────────────────────────────────────────────────────── */}
-        <div style={{
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '12px 16px',
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.72) 0%, transparent 100%)',
-        }}>
+        <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/72 to-transparent">
           <div>
-            <p style={{
-              color: '#fff', fontWeight: 600, fontSize: 14, margin: 0,
-              fontFamily: 'var(--font-display)', lineHeight: 1.3,
-              maxWidth: '60vw', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
+            <p className="text-white font-semibold text-[14px] m-0 font-[var(--font-display)] leading-[1.3] max-w-[60vw] overflow-hidden text-ellipsis whitespace-nowrap">
               {title}
             </p>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, fontFamily: 'var(--font-mono)', margin: '2px 0 0' }}>
+            <p className="text-white/45 text-[11px] font-[var(--font-mono)] mt-[2px] mr-0 mb-0 ml-0">
               {index + 1} / {images.length}{zoom > 1 ? `  ·  ${Math.round(zoom * 100)}%` : ''}
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button onClick={() => setZoom(z => { const n = Math.max(1, +(z - 0.5).toFixed(1)); if (n <= 1) setPan({ x: 0, y: 0 }); return n; })}
+          <div className="flex gap-2 items-center">
+            <button
+              type='button'
+              onClick={() => {
+                const nextZoom = Math.max(1, +(zoom - 0.5).toFixed(1));
+                setZoom(nextZoom);
+                if (nextZoom <= 1) setPan({ x: 0, y: 0 });
+              }}
               disabled={zoom <= 1}
               aria-label="Reducir zoom"
-              style={{ background: 'rgba(255,255,255,0.13)', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: zoom <= 1 ? 'default' : 'pointer', color: '#fff', opacity: zoom <= 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              className="bg-white/13 border-none rounded-full w-[36px] h-[36px] text-white flex items-center justify-center shrink-0"
+              style={{ cursor: zoom <= 1 ? 'default' : 'pointer', color: '#fff', opacity: zoom <= 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <ZoomOut style={{ width: 16, height: 16 }} />
             </button>
-            <button onClick={() => setZoom(z => Math.min(5, +(z + 0.5).toFixed(1)))}
+            <button
+              type='button'
+              onClick={() => {
+                const nextZoom = Math.min(5, +(zoom + 0.5).toFixed(1));
+                setZoom(nextZoom);
+                if (nextZoom >= 5) setPan({ x: 0, y: 0 });
+              }}
               disabled={zoom >= 5}
               aria-label="Aumentar zoom"
-              style={{ background: 'rgba(255,255,255,0.13)', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: zoom >= 5 ? 'default' : 'pointer', color: '#fff', opacity: zoom >= 5 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              className="bg-white/13 border-none rounded-full w-[36px] h-[36px] text-white flex items-center justify-center shrink-0"
+              style={{ cursor: zoom >= 5 ? 'default' : 'pointer', color: '#fff', opacity: zoom >= 5 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <ZoomIn style={{ width: 16, height: 16 }} />
             </button>
-            <button onClick={handleClose}
+            <button
+              type='button'
+              onClick={handleClose}
               aria-label="Cerrar galería"
-              style={{ background: 'rgba(255,255,255,0.13)', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s' }}
+              className="bg-white/13 border-none rounded-full w-[36px] h-[36px] text-white flex items-center justify-center shrink-0"
+              style={{ cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.25)'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.13)'}>
               <X style={{ width: 18, height: 18 }} />
@@ -303,16 +332,9 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
 
         {/* ── Image ──────────────────────────────────────────────────────── */}
         <div
+          className="flex-1 flex items-center justify-center overflow-hidden min-h-0 select-none"
           style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            minHeight: 0,
             cursor: zoom > 1 ? (mouseDown ? 'grabbing' : 'grab') : 'default',
-            userSelect: 'none',
-            WebkitUserSelect: 'none',
           }}
           onMouseDown={handleMouseDown}
         >
@@ -322,60 +344,51 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
             alt={`${title} — foto ${index + 1}`}
             draggable={false}
             referrerPolicy="no-referrer"
+            className="block max-w-full max-h-full w-auto h-auto object-contain pointer-events-none"
             style={{
-              display: 'block',
-              maxWidth: '100%',
-              maxHeight: '100%',
-              width: 'auto',
-              height: 'auto',
-              objectFit: 'contain',
               transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
               transition: mouseDown ? 'none' : 'transform 0.12s ease',
-              pointerEvents: 'none',
               animation: 'lightboxImgIn 0.25s cubic-bezier(0.16,1,0.3,1) both',
             }}
           />
         </div>
 
         {/* ── Bottom bar ─────────────────────────────────────────────────── */}
-        <div style={{
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 8,
-          padding: '8px 16px 16px',
-          background: 'linear-gradient(0deg, rgba(0,0,0,0.72) 0%, transparent 100%)',
-        }}>
+        <div
+          className="shrink-0 flex flex-col items-center gap-2 px-4 pt-2 pb-4 bg-gradient-to-t from-black/72 to-transparent">
           {/* Dots */}
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <div className="flex gap-[6px] items-center">
             {images.map((_, i) => (
-              <button key={i} onClick={() => goTo(i)} aria-label={`Foto ${i + 1}`}
+              <button
+                type='button'
+                key={index}
+                onClick={() => goTo(i)}
+                aria-label={`Ver foto ${i + 1}`}
+                className="border-none p-0 cursor-pointer h-[8px] transition-all duration-200 ease-out shrink-0"
                 style={{
-                  border: 'none', borderRadius: 9999, padding: 0, cursor: 'pointer',
-                  width: i === index ? 22 : 8, height: 8,
+                  borderRadius: 9999,
+                  width: i === index ? 22 : 8,
                   background: i === index ? '#ffb900' : 'rgba(255,255,255,0.3)',
-                  transition: 'all 0.2s ease',
-                  flexShrink: 0,
-                }}
-              />
+                }} />
             ))}
           </div>
 
           {/* Thumbnails */}
           {images.length > 1 && (
-            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', maxWidth: '100%', paddingBottom: 2 }}>
+            <div className="flex gap-[6px] overflow-x-auto max-w-full pb-[2px]">
               {images.map((src, i) => (
-                <button key={i} onClick={() => goTo(i)} aria-label={`Ir a foto ${i + 1}`}
+                <button
+                  type='button'
+                  key={index}
+                  onClick={() => goTo(i)}
+                  aria-label={`Ver foto ${i + 1}`}
+                  className="shrink-0 w-[56px] h-[40px] p-0 rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-150 ease-out"
                   style={{
-                    flexShrink: 0, width: 56, height: 40, padding: 0,
-                    borderRadius: 8, overflow: 'hidden',
-                    border: `2px solid ${i === index ? '#ffb900' : 'transparent'}`,
+                    borderColor: i === index ? '#ffb900' : 'transparent',
                     opacity: i === index ? 1 : 0.48,
-                    cursor: 'pointer', transition: 'all 0.15s ease',
                   }}>
                   <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    className="w-full h-full object-cover block" />
                 </button>
               ))}
             </div>
@@ -383,10 +396,8 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
 
           {/* Zoom hint */}
           {zoom <= 1 && images.length > 0 && (
-            <p style={{
-              color: 'rgba(255,255,255,0.35)', fontSize: 10, fontFamily: 'var(--font-mono)',
-              margin: 0, letterSpacing: '0.04em', pointerEvents: 'none',
-            }}>
+            <p
+              className="text-white/35 text-[10px] font-[var(--font-mono)] m-0 tracking-[0.04em] pointer-events-none">
               Rueda del ratón o pellizca para zoom · Desliza para navegar
             </p>
           )}
@@ -396,39 +407,29 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
         {images.length > 1 && (
           <>
             <button
+              type='button'
               onClick={() => navigate('prev')}
               aria-label="Imagen anterior"
-              style={{
-                position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(255,255,255,0.13)', border: 'none', borderRadius: '50%',
-                width: 44, height: 44, cursor: 'pointer', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                backdropFilter: 'blur(8px)', transition: 'background 0.15s', flexShrink: 0,
-              }}
+              className="absolute left-[10px] top-1/2 -translate-y-1/2 bg-white/13 border-none rounded-full w-[44px] h-[44px] cursor-pointer text-white flex items-center justify-center backdrop-blur-[8px] transition-[background] duration-150 shrink-0"
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.25)'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.13)'}
             >
-              <ChevronLeft style={{ width: 22, height: 22 }} />
+              <ChevronLeft className="w-[22px] h-[22px]" />
             </button>
             <button
+              type='button'
               onClick={() => navigate('next')}
               aria-label="Imagen siguiente"
-              style={{
-                position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(255,255,255,0.13)', border: 'none', borderRadius: '50%',
-                width: 44, height: 44, cursor: 'pointer', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                backdropFilter: 'blur(8px)', transition: 'background 0.15s', flexShrink: 0,
-              }}
+              className="absolute right-[10px] top-1/2 -translate-y-1/2 bg-white/13 border-none rounded-full w-[44px] h-[44px] cursor-pointer text-white flex items-center justify-center backdrop-blur-[8px] transition-[background] duration-150 shrink-0"
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.25)'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.13)'}
             >
-              <ChevronRight style={{ width: 22, height: 22 }} />
+              <ChevronRight className="w-[22px] h-[22px]" />
             </button>
           </>
         )}
       </div>
-    </div>
+    </dialog>
   );
 
   // Portal renders directly into <body> — completely outside any parent
@@ -439,6 +440,7 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
 // ─── PropertyDetailSidebar ────────────────────────────────────────────────────
 
 export default function PropertyDetailSidebar({
+  dialogRef,
   property,
   onClose,
   onOpenBooking,
@@ -534,7 +536,10 @@ export default function PropertyDetailSidebar({
               <Compass className="h-3 w-3 animate-spin" style={{ color: '#ffb900' }} />
               <span>Recorrido 3D Interactivo</span>
             </div>
-            <button onClick={() => setShowVirtualTour(false)}
+            <button
+              type='button'
+              aria-label='Salir de visita 3D'
+              onClick={() => setShowVirtualTour(false)}
               className="absolute top-3 right-3 bg-red-600 hover:bg-red-500 text-white font-semibold py-1 px-2.5 rounded text-[10px] cursor-pointer">
               Salir de Visita 3D
             </button>
@@ -551,6 +556,7 @@ export default function PropertyDetailSidebar({
           >
             {/* Clickable zone opens lightbox */}
             <button
+              type='button'
               className="absolute inset-0 w-full h-full focus:outline-none"
               style={{ cursor: 'zoom-in', border: 'none', padding: 0, background: 'none' }}
               onClick={() => setLightboxOpen(true)}
@@ -568,7 +574,7 @@ export default function PropertyDetailSidebar({
 
             {/* Expand hint */}
             <div
-              className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               style={{ background: 'rgba(15,23,43,0.78)', color: '#fff' }}
             >
               <Expand className="h-3 w-3" style={{ color: '#ffb900' }} />
@@ -579,11 +585,17 @@ export default function PropertyDetailSidebar({
 
             {property.images.length > 1 && (
               <>
-                <button onClick={handlePrevImage}
+                <button
+                  type='button'
+                  onClick={handlePrevImage}
+                  aria-label="Imagen anterior"
                   className="absolute left-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-900/60 backdrop-blur-sm text-white hover:bg-slate-950/80 transition-all cursor-pointer z-10">
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <button onClick={handleNextImage}
+                <button
+                  type='button'
+                  onClick={handleNextImage}
+                  aria-label="Imagen siguiente"
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-slate-900/60 backdrop-blur-sm text-white hover:bg-slate-950/80 transition-all cursor-pointer z-10">
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -591,8 +603,11 @@ export default function PropertyDetailSidebar({
             )}
 
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 bg-slate-900/40 backdrop-blur-sm p-1 rounded-full z-10">
-              {property.images.map((_, i) => (
-                <button key={i}
+              {property.images.map((image, i) => (
+                <button
+                  type='button'
+                  key={image}
+                  aria-label={`Ver foto ${i + 1}`}
                   onClick={e => { e.stopPropagation(); setActiveImageIndex(i); setAnimKey(k => k + 1); }}
                   className={`h-1.5 rounded-full transition-all ${activeImageIndex === i ? 'w-3.5' : 'w-1.5 bg-white/60 hover:bg-white'}`}
                   style={activeImageIndex === i ? { background: '#ffb900' } : {}}
@@ -648,7 +663,7 @@ export default function PropertyDetailSidebar({
               </span>
               <div className="flex flex-wrap gap-1">
                 {property.features.map((f, i) => (
-                  <span key={i} className="px-2 py-0.5 rounded text-[10px] font-medium"
+                  <span key={f} className="px-2 py-0.5 rounded text-[10px] font-medium"
                     style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #e2e8f0' }}>
                     {f}
                   </span>
@@ -658,7 +673,10 @@ export default function PropertyDetailSidebar({
           )}
 
           <div className="space-y-2 pt-2.5">
-            <button onClick={() => { onRegisterClick(property.id); setShowVirtualTour(true); }}
+            <button
+              type='button'
+              aria-label='Visita virtual 3D'
+              onClick={() => { onRegisterClick(property.id); setShowVirtualTour(true); }}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               style={{ background: '#f1f5f9', color: '#334155' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#e2e8f0'}
@@ -667,7 +685,10 @@ export default function PropertyDetailSidebar({
               <span>Ver Visita Virtual 3D</span>
             </button>
 
-            <button onClick={() => { onRegisterClick(property.id); onOpenBooking(); }}
+            <button
+              type='button'
+              aria-label='Agendar cita'
+              onClick={() => { onRegisterClick(property.id); onOpenBooking(); }}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
               style={{ background: '#0f172b', color: '#f8fafc' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#1e293b'}
@@ -676,7 +697,10 @@ export default function PropertyDetailSidebar({
               <span>Agendar Cita con Calendario</span>
             </button>
 
-            <button onClick={handleWhatsAppClick}
+            <button
+              type='button'
+              aria-label='Contacto directo WhatsApp Corredor'
+              onClick={handleWhatsAppClick}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               style={{ background: '#25D366', color: '#fff' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#1fba57'}

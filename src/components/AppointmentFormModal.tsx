@@ -10,6 +10,10 @@ interface AppointmentFormProps {
   onSubmit: (appointment: Omit<Appointment, 'id' | 'createdAt'>) => void;
 }
 
+const TIME_SLOTS = [
+  '09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '03:30 PM', '05:00 PM'
+];
+
 export default function AppointmentFormModal({ property, isOpen, onClose, onSubmit }: AppointmentFormProps) {
   const { isVisible, animClass, close } = useModal(isOpen, onClose);
   const [firstName, setFirstName] = useState('');
@@ -93,9 +97,7 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
     };
   });
 
-  const timeSlots = [
-    '09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '03:30 PM', '05:00 PM'
-  ];
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -103,10 +105,14 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
       <div
         className={`fixed inset-0 bg-slate-900/60 backdrop-blur-md-custom transition-opacity ${animClass.overlay}`}
         onClick={close}
+        aria-label='Close form'
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') close(); }}
+        role="button"
+        tabIndex={0}
       />
 
       <div className={`relative w-[90%] max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl transition-all border border-slate-100 mx-auto ${animClass.panel}`}>
-        
+
         {success ? (
           <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
             <div className="mb-4 rounded-full bg-emerald-100 p-4 text-emerald-600">
@@ -129,6 +135,8 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
                 <h3 className="font-display text-lg font-bold text-slate-900 line-clamp-1">{property.title}</h3>
               </div>
               <button
+                type='button'
+                aria-label="Cerrar"
                 onClick={close}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
               >
@@ -137,14 +145,15 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh] space-y-4">
-              
+
               {/* Client Info Grid */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">Nombre *</label>
+                  <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="appointment-client-first-name">Nombre *</label>
                   <div className="relative">
                     <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                    <input 
+                    <input
+                      id="appointment-client-first-name"
                       type="text"
                       required
                       placeholder="Ej. Juan"
@@ -156,10 +165,11 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">Apellido *</label>
+                  <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="appointment-client-last-name">Apellido *</label>
                   <div className="relative">
                     <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                    <input 
+                    <input
+                      id="appointment-client-last-name"
                       type="text"
                       required
                       placeholder="Ej. Pérez"
@@ -174,10 +184,11 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
               {/* Email & Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">Correo Electrónico *</label>
+                  <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="appointment-client-email">Correo Electrónico *</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                    <input 
+                    <input
+                      id="appointment-client-email"
                       type="email"
                       required
                       placeholder="juan@correo.com"
@@ -189,10 +200,11 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">Teléfono (WhatsApp) *</label>
+                  <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="appointment-client-phone">Teléfono (WhatsApp) *</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                    <input 
+                    <input
+                      id="appointment-client-phone"
                       type="tel"
                       required
                       placeholder="Ej. +34 600000000"
@@ -206,13 +218,14 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
 
               {/* Budget */}
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1 flex justify-between">
+                <label className="block text-xs font-medium text-slate-500 mb-1 flex justify-between" htmlFor="appointment-client-budget">
                   <span>Presupuesto Estimado ($)</span>
                   <span className="font-mono text-amber-600 font-semibold">${Number(budget).toLocaleString()}</span>
                 </label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                  <input 
+                  <input
+                    id="appointment-client-budget"
                     type="number"
                     required
                     value={budget}
@@ -224,24 +237,24 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
 
               {/* Beautiful Calendar integrated selector */}
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1">
+                <label className="block text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1" htmlFor="appointment-client-date">
                   <Calendar className="h-3.5 w-3.5 text-amber-500" />
                   <span>Seleccione Fecha Disponibles *</span>
                 </label>
-                
+
                 <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
                   {availableDates.map((item) => {
                     const isSelected = date === item.isoString;
                     return (
                       <button
+                        aria-label={`Fecha: ${item.isoString}`}
                         key={item.isoString}
                         type="button"
                         onClick={() => setDate(item.isoString)}
-                        className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
-                          isSelected
-                            ? 'border-amber-500 bg-amber-50 text-amber-950 ring-2 ring-amber-500/20 font-semibold'
-                            : 'border-slate-100 bg-slate-50/50 text-slate-600 hover:bg-slate-100 hover:border-slate-200'
-                        }`}
+                        className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${isSelected
+                          ? 'border-amber-500 bg-amber-50 text-amber-950 ring-2 ring-amber-500/20 font-semibold'
+                          : 'border-slate-100 bg-slate-50/50 text-slate-600 hover:bg-slate-100 hover:border-slate-200'
+                          }`}
                       >
                         <span className="text-[10px] uppercase text-slate-400 block font-mono">
                           {item.dayName}
@@ -256,11 +269,12 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
                     );
                   })}
                 </div>
-                
+
                 {/* Fallback traditional input for manual date option if needed */}
                 <div className="mt-2 flex gap-2 items-center">
                   <span className="text-xs text-slate-400">O ingresa otra fecha:</span>
-                  <input 
+                  <input
+                    aria-label="appoiment-client-date"
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
@@ -271,23 +285,22 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
 
               {/* Time Slots */}
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1">
+                <span className="block text-xs font-medium text-slate-500 mb-1.5 flex items-center gap-1" >
                   <Clock className="h-3.5 w-3.5 text-amber-500" />
                   <span>Horario Sugerido</span>
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
-                  {timeSlots.map((slot) => {
+                  {TIME_SLOTS.map((slot) => {
                     const isSelected = time === slot;
                     return (
                       <button
                         key={slot}
                         type="button"
                         onClick={() => setTime(slot)}
-                        className={`py-1.5 px-3 rounded-lg border text-xs text-center transition-all ${
-                          isSelected
-                            ? 'border-amber-500 bg-amber-50 text-amber-950 font-semibold'
-                            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
+                        className={`py-1.5 px-3 rounded-lg border text-xs text-center transition-all ${isSelected
+                          ? 'border-amber-500 bg-amber-50 text-amber-950 font-semibold'
+                          : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
                       >
                         {slot}
                       </button>
@@ -298,8 +311,9 @@ export default function AppointmentFormModal({ property, isOpen, onClose, onSubm
 
               {/* Advisory notes */}
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Notas o comentarios extra</label>
-                <textarea 
+                <label className="block text-xs font-medium text-slate-500 mb-1" htmlFor="appointment-notes">Notas o comentarios extra</label>
+                <textarea
+                  id="appointment-notes"
                   placeholder="Ej. Me gustaría que tenga balcón, consultar si acepta crédito hipotecario..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}

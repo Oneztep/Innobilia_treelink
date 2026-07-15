@@ -100,7 +100,8 @@ export async function fetchProperties(): Promise<Property[] | null> {
   if (OFFLINE_MODE) return null;
   const { data, error } = await supabase
     .from('properties')
-    .select('*')
+    .select('id, title, description, address, location, price, rooms, bathrooms,area, images, virtual_tour_url,whatsapp_number,features,clicks,shares,created_at')
+    .limit(10)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -305,7 +306,6 @@ export async function fetchCompanySettings(): Promise<CompanySettings | null> {
     facebookUrl: data.facebook_url ?? '',
     instagramUrl: data.instagram_url ?? '',
     whatsappUrl: data.whatsapp_url ?? '',
-    adminSecret: data.admin_secret ?? '',
   };
 }
 
@@ -322,7 +322,6 @@ export async function upsertCompanySettings(settings: CompanySettings): Promise<
       facebook_url: settings.facebookUrl,
       instagram_url: settings.instagramUrl,
       whatsapp_url: settings.whatsappUrl,
-      admin_secret: settings.adminSecret,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
 

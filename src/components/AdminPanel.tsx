@@ -81,16 +81,25 @@ export default function AdminPanel({
   const chartDays = last7Days.map(day => {
     const dayData = analytics.dailyClicks?.[day.iso] || {};
     const total = Object.values(dayData).reduce((s, v) => s + v, 0);
+
     const segments = properties
-      .map((p, idx) => ({
-        propId: p.id,
-        propTitle: p.title,
-        clicks: dayData[p.id] || 0,
-        color: PROPERTY_COLORS[idx % PROPERTY_COLORS.length],
-      }))
-      .filter(s => s.clicks > 0);
+      .reduce((acc, p, idx) => {
+        const clicks = dayData[p.id] || 0;
+
+        if (clicks > 0) {
+          acc.push({
+            propId: p.id,
+            propTitle: p.title,
+            clicks: clicks,
+            color: PROPERTY_COLORS[idx % PROPERTY_COLORS.length],
+          });
+        }
+
+        return acc;
+      }, [])
+
     return { iso: day.iso, label: day.label, total, segments };
-  });
+  })
 
   const maxDayTotal = Math.max(...chartDays.map(d => d.total), 1);
 
@@ -111,6 +120,7 @@ export default function AdminPanel({
           </p>
         </div>
         <button
+          type='button'
           onClick={onResetAnalytics}
           className="self-start sm:self-center inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 text-xs font-semibold cursor-pointer transition-colors"
         >
@@ -159,6 +169,7 @@ export default function AdminPanel({
 
         {/* Mayor Interés → opens stacked bar chart modal */}
         <button
+          type='button'
           onClick={() => setShowChartModal(true)}
           className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between text-left group hover:border-amber-400 hover:shadow-md transition-all cursor-pointer"
         >
@@ -313,11 +324,8 @@ export default function AdminPanel({
                   </div>
 
                   <button
-                    onClick={() => {
-                      if (confirm('¿Deseas dar por atendida o borrar la solicitud de esta cita?')) {
-                        onDeleteAppointment(item.id);
-                      }
-                    }}
+                    type='button'
+                    onClick={() => onDeleteAppointment(item.id)}
                     className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                     title="Eliminar Lead Cita"
                   >
@@ -336,7 +344,9 @@ export default function AdminPanel({
           {/* Backdrop */}
           <div
             className={`fixed inset-0 bg-slate-900/70 backdrop-blur-sm ${chartAnim.overlay}`}
+            aria-label='Close-chart'
             onClick={() => { closeChart(); setTooltip(null); setActiveMobileBar(null); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') closeChart(); setTooltip(null); setActiveMobileBar(null); }} role="button" tabIndex={0}
           />
 
           <div
@@ -355,6 +365,8 @@ export default function AdminPanel({
                 </div>
               </div>
               <button
+                type='button'
+                aria-label="Cerrar"
                 onClick={() => { closeChart(); setTooltip(null); setActiveMobileBar(null); }}
                 className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors text-slate-500 cursor-pointer shrink-0"
               >
@@ -551,6 +563,8 @@ export default function AdminPanel({
                         {day.label} <span className="font-normal text-slate-400">· {day.total} clics totales</span>
                       </p>
                       <button
+                        type='button'
+                        aria-label="Cerrar"
                         className="text-slate-400 p-0.5"
                         onTouchEnd={(e) => { e.preventDefault(); setActiveMobileBar(null); }}
                       >

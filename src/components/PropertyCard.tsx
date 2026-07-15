@@ -113,7 +113,7 @@ const PropertyCard = memo(function PropertyCard({
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = ''}>
               {p.title}
             </h4>
-            <ChevronRight className="h-4 w-4 text-stone-300 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5"
+            <ChevronRight className="h-4 w-4 text-stone-300 translate-x-0.5 transition-all shrink-0 mt-0.5"
               style={{ color: undefined }}
               onMouseEnter={undefined}
             />
@@ -144,6 +144,7 @@ const PropertyCard = memo(function PropertyCard({
         <div className="flex items-center justify-between pt-2 border-t border-stone-100">
           <div className="flex items-center gap-1.5">
             <button
+              type='button'
               onClick={(e) => onWhatsApp(p, e)}
               className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-semibold rounded-lg border border-emerald-100/80 transition-colors flex items-center gap-1 cursor-pointer"
               title="Contactar vía WhatsApp"
@@ -154,6 +155,7 @@ const PropertyCard = memo(function PropertyCard({
 
             {p.virtualTourUrl !== undefined && p.virtualTourUrl !== null && p.virtualTourUrl !== '' ? (
               <button
+                type='button'
                 onClick={(e) => { e.stopPropagation(); onClick(p); }}
                 className="px-2.5 py-1 text-[10px] font-semibold rounded-lg border transition-colors flex items-center gap-1 cursor-pointer"
                 style={{ background: 'rgba(15,23,43,0.06)', borderColor: 'rgba(15,23,43,0.15)', color: '#334155' }}
@@ -174,6 +176,7 @@ const PropertyCard = memo(function PropertyCard({
 
           <div className="flex items-center gap-0.5">
             <button
+              type='button'
               onClick={(e) => onShare(p, e)}
               className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
               title="Compartir propiedad"
@@ -184,6 +187,7 @@ const PropertyCard = memo(function PropertyCard({
             {role === 'admin' ? (
               <div className="flex items-center border-l border-stone-200 pl-1.5 ml-0.5 gap-0.5">
                 <button
+                  type='button'
                   onClick={(e) => { e.stopPropagation(); onEdit(p); }}
                   className="p-1.5 rounded-lg transition-colors cursor-pointer"
                   style={{ color: '#cc9a00' }}
@@ -200,6 +204,7 @@ const PropertyCard = memo(function PropertyCard({
                   <Edit className="h-3.5 w-3.5" />
                 </button>
                 <button
+                  type='button'
                   onClick={(e) => onDelete(p.id, e)}
                   className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                   title="Eliminar"

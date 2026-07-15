@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Sparkles, Building2, Upload, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 
@@ -10,16 +10,17 @@ export interface CompanySettings {
   facebookUrl: string;
   instagramUrl: string;
   whatsappUrl: string;
-  adminSecret: string;
 }
 
 interface IdentityModalProps {
+  key: string | number;
   isOpen: boolean;
   onClose: () => void;
   companySettings: CompanySettings;
   onSave: (settings: CompanySettings) => void;
-  focusField?: 'logoUrl' | 'name' | 'subtitle' | 'description' | 'facebookUrl' | 'adminSecret' | 'all';
+  focusField?: 'logoUrl' | 'name' | 'subtitle' | 'description' | 'facebookUrl' | 'all';
   onShowToast: (msg: string) => void;
+  dialogRef: React.RefObject<HTMLDialogElement>;
 }
 
 /**
@@ -27,6 +28,7 @@ interface IdentityModalProps {
  * Extraído de App.tsx para reducir el tamaño del archivo principal.
  */
 export default function IdentityModal({
+  dialogRef,
   isOpen,
   onClose,
   companySettings,
@@ -35,12 +37,7 @@ export default function IdentityModal({
   onShowToast,
 }: IdentityModalProps) {
   const { isVisible, animClass, close } = useModal(isOpen, onClose);
-  const [draft, setDraft] = React.useState<CompanySettings>(companySettings);
-
-  // Sync draft when modal opens with fresh settings
-  useEffect(() => {
-    if (isOpen) setDraft(companySettings);
-  }, [isOpen, companySettings]);
+  const [draft, setDraft] = useState<CompanySettings>(companySettings);
 
   if (!isVisible) return null;
 
@@ -67,7 +64,6 @@ export default function IdentityModal({
       facebookUrl: 'https://facebook.com/innobilia',
       instagramUrl: 'https://instagram.com/innobilia.asesoresinversiones',
       whatsappUrl: 'https://wa.me/5218110000000',
-      adminSecret: 'secreto123',
     };
     setDraft(demo);
     onShowToast('Demostración premium restaurada.');
@@ -80,9 +76,9 @@ export default function IdentityModal({
   };
 
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
-      role="dialog"
       aria-modal="true"
       aria-labelledby="identity-modal-title"
     >
@@ -90,6 +86,10 @@ export default function IdentityModal({
       <div
         className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm ${animClass.overlay}`}
         onClick={close}
+        aria-label='Close-overlay'
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') close(); }}
+        role="button"
+        tabIndex={0}
       />
 
       <div className={`relative w-[90%] max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-200 flex flex-col mx-auto ${animClass.panel}`}>
@@ -105,6 +105,7 @@ export default function IdentityModal({
             </h3>
           </div>
           <button
+            type='button'
             onClick={close}
             className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
             aria-label="Cerrar modal"
@@ -122,9 +123,9 @@ export default function IdentityModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Logo Upload */}
             <div className="space-y-1 sm:col-span-2">
-              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase mb-1">
+              <span className="block text-[10px] font-mono text-slate-700 font-bold uppercase mb-1">
                 Foto de Perfil (Subir Archivo)
-              </label>
+              </span>
               <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                 {draft.logoUrl ? (
                   <img
@@ -144,7 +145,7 @@ export default function IdentityModal({
                     htmlFor="popup-logo-file-input"
                     className="flex items-center justify-center py-2 px-3 border border-dashed border-slate-300 hover:border-amber-500 bg-white hover:bg-slate-50 rounded-lg cursor-pointer transition-colors text-xs text-slate-700 gap-1.5 font-bold shadow-sm group"
                   >
-                    <Upload className="h-4 w-4 text-amber-500 group-hover:animate-bounce" />
+                    <Upload className="h-4 w-4 text-amber-500 group-hover:ease-expo-out" />
                     <span>Seleccionar Foto del Dispositivo</span>
                     <input
                       id="popup-logo-file-input"
@@ -161,10 +162,11 @@ export default function IdentityModal({
 
             {/* Name */}
             <div className="space-y-1">
-              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase">
+              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase" htmlFor="identityModal-name">
                 Nombre de la Empresa
               </label>
               <input
+                id="identityModal-name"
                 type="text"
                 autoFocus={focusField === 'name'}
                 placeholder="INNOBILIA"
@@ -176,10 +178,11 @@ export default function IdentityModal({
 
             {/* Subtitle */}
             <div className="space-y-1">
-              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase">
+              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase" htmlFor="identityModal-subtitle">
                 Subtítulo / Rubro
               </label>
               <input
+                id="identityModal-subtitle"
                 type="text"
                 autoFocus={focusField === 'subtitle'}
                 placeholder="Asesores Inmobiliarios"
@@ -191,10 +194,11 @@ export default function IdentityModal({
 
             {/* Facebook URL */}
             <div className="space-y-1 sm:col-span-2">
-              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase">
+              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase" htmlFor="identityModal-facebookUrl">
                 URL Facebook
               </label>
               <input
+                id="identityModal-facebookUrl"
                 type="url"
                 autoFocus={focusField === 'facebookUrl'}
                 placeholder="https://facebook.com/tupagina"
@@ -206,10 +210,11 @@ export default function IdentityModal({
 
             {/* Description */}
             <div className="space-y-1 sm:col-span-2">
-              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase">
+              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase" htmlFor="identityModal-description">
                 Descripción Principal
               </label>
               <textarea
+                id="identityModal-description"
                 rows={3}
                 autoFocus={focusField === 'description'}
                 placeholder="Encuentra tu próximo hogar..."
@@ -221,10 +226,11 @@ export default function IdentityModal({
 
             {/* Instagram URL */}
             <div className="space-y-1">
-              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase">
+              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase" htmlFor="identityModal-instagramUrl">
                 URL Instagram
               </label>
               <input
+                id="identityModal-instagramUrl"
                 type="url"
                 placeholder="https://instagram.com/..."
                 value={draft.instagramUrl}
@@ -235,10 +241,11 @@ export default function IdentityModal({
 
             {/* WhatsApp URL */}
             <div className="space-y-1">
-              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase">
+              <label className="block text-[10px] font-mono text-slate-700 font-bold uppercase" htmlFor="identityModal-whatsappUrl">
                 URL WhatsApp (wa.me)
               </label>
               <input
+                id="identityModal-whatsappUrl"
                 type="url"
                 placeholder="https://wa.me/..."
                 value={draft.whatsappUrl}
@@ -274,6 +281,6 @@ export default function IdentityModal({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

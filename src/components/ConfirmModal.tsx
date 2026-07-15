@@ -11,6 +11,7 @@ interface ConfirmModalProps {
   variant?: 'danger' | 'warning';
   onConfirm: () => void;
   onCancel: () => void;
+  dialogRef: React.RefObject<HTMLDialogElement>;
 }
 
 /**
@@ -18,6 +19,7 @@ interface ConfirmModalProps {
  * Reemplaza todos los window.confirm() del proyecto.
  */
 export default function ConfirmModal({
+  dialogRef,
   isOpen,
   title,
   message,
@@ -28,12 +30,31 @@ export default function ConfirmModal({
   onCancel,
 }: ConfirmModalProps) {
   const { isVisible, animClass, close: handleCancel } = useModal(isOpen, onCancel);
+
+  // Mantener los textos visibles durante la animación de salida aunque App.tsx los borre
+  const prevProps = React.useRef<ConfirmModalProps>({
+    isOpen, title, message, confirmLabel, cancelLabel, variant, onConfirm, onCancel
+  });
+
+  React.useEffect(() => {
+    if (isOpen) {
+      prevProps.current = { isOpen, title, message, confirmLabel, cancelLabel, variant, onConfirm, onCancel };
+    }
+  }, [isOpen, title, message, confirmLabel, cancelLabel, variant, onConfirm, onCancel]);
+
+  const displayTitle = isOpen ? title : prevProps.current.title;
+  const displayMessage = isOpen ? message : prevProps.current.message;
+  const displayConfirmLabel = isOpen ? confirmLabel : prevProps.current.confirmLabel;
+  const displayCancelLabel = isOpen ? cancelLabel : prevProps.current.cancelLabel;
+  const displayVariant = isOpen ? variant : prevProps.current.variant;
+
   if (!isVisible) return null;
 
-  const isDanger = variant === 'danger';
+  const isDanger = displayVariant === 'danger';
 
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-fade-in"
       role="dialog"
       aria-modal="true"
@@ -42,7 +63,11 @@ export default function ConfirmModal({
       {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-slate-900/70 backdrop-blur-sm ${animClass.overlay}`}
+        aria-label='Cancel-modal'
         onClick={handleCancel}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCancel(); }}
+        role="button"
+        tabIndex={0}
       />
 
       {/* Panel */}
@@ -61,11 +86,12 @@ export default function ConfirmModal({
               id="confirm-modal-title"
               className="font-display font-bold text-slate-900 text-sm"
             >
-              {title}
+              {displayTitle}
             </h3>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">{message}</p>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">{displayMessage}</p>
           </div>
           <button
+            type='button'
             onClick={onCancel}
             className="shrink-0 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             aria-label="Cerrar"
@@ -77,23 +103,24 @@ export default function ConfirmModal({
         {/* Footer actions */}
         <div className="px-5 pb-5 flex items-center justify-end gap-2">
           <button
+            type='button'
             onClick={onCancel}
             className="px-4 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
           >
-            {cancelLabel}
+            {displayCancelLabel}
           </button>
           <button
+            type='button'
             onClick={onConfirm}
-            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-white ${
-              isDanger
-                ? 'bg-red-500 hover:bg-red-600'
-                : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-            }`}
+            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer text-white ${isDanger
+              ? 'bg-red-500 hover:bg-red-600'
+              : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+              }`}
           >
-            {confirmLabel}
+            {displayConfirmLabel}
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

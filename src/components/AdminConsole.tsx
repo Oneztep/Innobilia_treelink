@@ -67,18 +67,17 @@ export default function AdminConsole({
       instagramUrl: 'https://instagram.com/innobilia.asesoresinversiones',
       whatsappUrl: 'https://wa.me/5218110000000',
       // Blocker 2: use env var default, not hardcoded string
-      adminSecret: import.meta.env.VITE_ADMIN_SECRET ?? 'cambiar-en-produccion',
     });
     onShowToast('Valores demostrativos premium cargados.');
   };
 
-  const handleCopyAdminLink = () => {
-    // Issue 6: hash (#) never reaches the server — safe from access logs
-    const base = import.meta.env.VITE_APP_URL ?? window.location.origin;
-    const generatedLink = `${base}/#access=${companySettings.adminSecret}`;
-    navigator.clipboard.writeText(generatedLink);
-    onShowToast('¡Enlace Secreto de Administrador copiado al portapapeles!');
-  };
+  // const handleCopyAdminLink = () => {
+  //   // Issue 6: hash (#) never reaches the server — safe from access logs
+  //   const base = import.meta.env.VITE_APP_URL ?? window.location.origin;
+  //   const generatedLink = `${base}/#access=${data.adminAuthInput}`;
+  //   navigator.clipboard.writeText(generatedLink);
+  //   onShowToast('¡Enlace Secreto de Administrador copiado al portapapeles!');
+  // };
 
   return (
     <div className="rounded-2xl p-5 border shadow-xl space-y-4 animate-in slide-in-from-top duration-300"
@@ -107,6 +106,7 @@ export default function AdminConsole({
             </p>
           </div>
           <button
+            type='button'
             onClick={onCopyClientLink}
             className="shrink-0 px-3.5 py-1.5 text-white border text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
             style={{ background: '#1e293b', borderColor: '#334155' }}
@@ -122,7 +122,7 @@ export default function AdminConsole({
       </div>
 
       {/* Admin Link Generator */}
-      <div className="p-4 rounded-xl space-y-3" style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid #334155' }}>
+      {/* <div className="p-4 rounded-xl space-y-3" style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid #334155' }}>
         <div className="border-b pb-2" style={{ borderColor: '#334155' }}>
           <h4 className="text-xs font-bold flex items-center gap-1.5" style={{ color: '#e2e8f0' }}>
             <Lock className="h-3.5 w-3.5" style={{ color: '#ffb900' }} />
@@ -136,8 +136,9 @@ export default function AdminConsole({
         <div className="space-y-2">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 space-y-1">
-              <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#94a3b8' }}>Clave Secreta de Acceso</label>
+              <label className="block text-[10px] font-mono font-bold uppercase" htmlFor="listing-admin-secret-key" style={{ color: '#94a3b8' }}>Clave Secreta de Acceso</label>
               <input
+                id="listing-admin-secret-key"
                 type="text"
                 placeholder="ej. mi_clave.secreta@99#"
                 value={companySettings.adminSecret || 'secreto123'}
@@ -170,7 +171,7 @@ export default function AdminConsole({
             </span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Branding Setup */}
       <div className="p-4 rounded-xl space-y-3" style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid #334155' }}>
@@ -187,8 +188,8 @@ export default function AdminConsole({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Name */}
           <div className="space-y-1">
-            <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#94a3b8' }}>Nombre de la Empresa</label>
-            <input type="text" placeholder="INNOBILIA" value={companySettings.name || ''}
+            <label className="block text-[10px] font-mono font-bold uppercase" htmlFor="listing-company-name" style={{ color: '#94a3b8' }}>Nombre de la Empresa</label>
+            <input id="listing-company-name" type="text" placeholder="INNOBILIA" value={companySettings.name || ''}
               onChange={(e) => onSaveSettings({ ...companySettings, name: e.target.value })}
               className="w-full rounded-lg border px-2.5 py-1.5 text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400 font-sans"
               style={{ background: '#0a0f1e', borderColor: '#334155', color: '#f8fafc' }} />
@@ -196,8 +197,8 @@ export default function AdminConsole({
 
           {/* Subtitle */}
           <div className="space-y-1">
-            <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#94a3b8' }}>Subtítulo / Tagline</label>
-            <input type="text" placeholder="Asesores Inmobiliarios" value={companySettings.subtitle || ''}
+            <label className="block text-[10px] font-mono font-bold uppercase" htmlFor="listing-company-subtitle" style={{ color: '#94a3b8' }}>Subtítulo / Tagline</label>
+            <input id="listing-company-subtitle" type="text" placeholder="Asesores Inmobiliarios" value={companySettings.subtitle || ''}
               onChange={(e) => onSaveSettings({ ...companySettings, subtitle: e.target.value })}
               className="w-full rounded-lg border px-2.5 py-1.5 text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400 font-sans"
               style={{ background: '#0a0f1e', borderColor: '#334155', color: '#f8fafc' }} />
@@ -205,7 +206,7 @@ export default function AdminConsole({
 
           {/* Logo Upload */}
           <div className="space-y-1">
-            <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#94a3b8' }}>Foto de Perfil (Subir Archivo)</label>
+            <label className="block text-[10px] font-mono font-bold uppercase" htmlFor="listing-company-logo" style={{ color: '#94a3b8' }}>Foto de Perfil (Subir Archivo)</label>
             <div className="flex items-center gap-2.5">
               {companySettings.logoUrl ? (
                 <img src={companySettings.logoUrl} alt="Logo corporativo"
@@ -226,7 +227,7 @@ export default function AdminConsole({
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#ffb900'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#334155'; }}
               >
-                <Upload className="h-3 w-3 mr-1.5 group-hover:animate-bounce" style={{ color: '#ffb900' }} />
+                <Upload className="h-3 w-3 mr-1.5 group-hover:ease-expo-out" style={{ color: '#ffb900' }} />
                 <span>Elegir foto de perfil</span>
                 <input id="admin-logo-file-input" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
               </label>
@@ -235,8 +236,8 @@ export default function AdminConsole({
 
           {/* Facebook URL */}
           <div className="space-y-1">
-            <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#94a3b8' }}>Enlace de Facebook</label>
-            <input type="url" placeholder="https://facebook.com/tupagina" value={companySettings.facebookUrl || ''}
+            <label className="block text-[10px] font-mono font-bold uppercase" htmlFor="listing-company-fb-url" style={{ color: '#94a3b8' }}>Enlace de Facebook</label>
+            <input id="listing-company-fb-url" type="url" placeholder="https://facebook.com/tupagina" value={companySettings.facebookUrl || ''}
               onChange={(e) => onSaveSettings({ ...companySettings, facebookUrl: e.target.value })}
               className="w-full rounded-lg border px-2.5 py-1.5 text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400 font-sans"
               style={{ background: '#0a0f1e', borderColor: '#334155', color: '#f8fafc' }} />
@@ -244,8 +245,8 @@ export default function AdminConsole({
 
           {/* Instagram */}
           <div className="space-y-1">
-            <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#94a3b8' }}>Enlace de Instagram</label>
-            <input type="text" placeholder="https://instagram.com/nombre" value={companySettings.instagramUrl}
+            <label className="block text-[10px] font-mono font-bold uppercase" htmlFor="listing-company-ig-url" style={{ color: '#94a3b8' }}>Enlace de Instagram</label>
+            <input id="listing-company-ig-url" type="text" placeholder="https://instagram.com/nombre" value={companySettings.instagramUrl}
               onChange={(e) => onSaveSettings({ ...companySettings, instagramUrl: e.target.value })}
               className="w-full rounded-lg border px-2.5 py-1.5 text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400 font-sans"
               style={{ background: '#0a0f1e', borderColor: '#334155', color: '#f8fafc' }} />
@@ -253,8 +254,8 @@ export default function AdminConsole({
 
           {/* WhatsApp */}
           <div className="space-y-1">
-            <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#94a3b8' }}>Enlace de WhatsApp Corporativo</label>
-            <input type="text" placeholder="https://wa.me/5218110000000" value={companySettings.whatsappUrl}
+            <label className="block text-[10px] font-mono font-bold uppercase" htmlFor="listing-company-whatsapp-url" style={{ color: '#94a3b8' }}>Enlace de WhatsApp Corporativo</label>
+            <input id="listing-company-whatsapp-url" type="text" placeholder="https://wa.me/5218110000000" value={companySettings.whatsappUrl}
               onChange={(e) => onSaveSettings({ ...companySettings, whatsappUrl: e.target.value })}
               className="w-full rounded-lg border px-2.5 py-1.5 text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400 font-sans"
               style={{ background: '#0a0f1e', borderColor: '#334155', color: '#f8fafc' }} />
@@ -262,8 +263,8 @@ export default function AdminConsole({
 
           {/* Description */}
           <div className="space-y-1 md:col-span-2">
-            <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#94a3b8' }}>Descripción Principal del Perfil</label>
-            <textarea rows={2} placeholder="Encuentra tu próximo hogar..." value={companySettings.description || ''}
+            <label className="block text-[10px] font-mono font-bold uppercase" htmlFor="listing-company-description" style={{ color: '#94a3b8' }}>Descripción Principal del Perfil</label>
+            <textarea id="listing-company-description" rows={2} placeholder="Encuentra tu próximo hogar..." value={companySettings.description || ''}
               onChange={(e) => onSaveSettings({ ...companySettings, description: e.target.value })}
               className="w-full rounded-lg border px-2.5 py-1.5 text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400 font-sans resize-none"
               style={{ background: '#0a0f1e', borderColor: '#334155', color: '#f8fafc' }} />
@@ -271,11 +272,14 @@ export default function AdminConsole({
         </div>
 
         <div className="flex gap-2">
-          <button onClick={handleLoadDemo} className="px-2.5 py-1 text-[10px] transition-colors cursor-pointer"
+          <button
+            type='button'
+            onClick={handleLoadDemo} className="px-2.5 py-1 text-[10px] transition-colors cursor-pointer"
             style={{ color: '#64748b' }}>
             Usar foto y enlaces demo de muestra ⚡
           </button>
           <button
+            type='button'
             onClick={() => onShowToast('¡Configuración de identidad y redes guardada con éxito!')}
             className="ml-auto px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer"
             style={{ background: '#ffb900', color: '#0f172b' }}

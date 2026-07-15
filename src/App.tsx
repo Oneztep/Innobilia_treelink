@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useTransition, lazy, S
 import { Property, Appointment, AnalyticsSummary } from './types';
 import { INITIAL_PROPERTIES, INITIAL_APPOINTMENTS } from './initialData';
 import { supabase } from './lib/supabase.ts';
+import { PRICE_RANGES } from './config/filters';
 
 // Storage helper (js-cache-storage + advanced-init-once: migration runs at module load)
 import { lsGet, lsSet } from './lib/storage';
@@ -31,7 +32,12 @@ import IdentityModal, { CompanySettings } from './components/IdentityModal';
 import AdminConsole from './components/AdminConsole';
 import FiltersBar from './components/FiltersBar';
 import { useModal, useSheetModal } from './hooks/useModal';
-import PropertyCard from './components/PropertyCard';
+import { Hero } from './components/Hero';
+import { Footer } from './components/Footer';
+import { MobileFloatingButtons } from './components/MobileFloatingButtons';
+import { SocialContactNav } from './components/SocialContactNav';
+import { PropertyList } from './components/PropertyList';
+import { AdminAuthModal } from './components/AdminAuthModal';
 
 // bundle-dynamic-imports: heavy modals loaded lazily (only when user triggers them)
 const AddPropertyModal = lazy(() => import('./components/AddPropertyModal'));
@@ -50,7 +56,6 @@ import {
   Check,
   Info,
   Edit,
-  Instagram,
   X,
   Eye,
   EyeOff,
@@ -59,31 +64,9 @@ import {
 
 // rendering-hoist-jsx: static JSX that never changes — defined outside component
 // so React never re-creates these objects on re-renders
-const HERO_GLOW_TOP = (
-  <div
-    className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full pointer-events-none"
-    style={{ background: 'radial-gradient(ellipse, rgba(255,185,0,0.09) 0%, transparent 70%)' }}
-  />
-);
-const HERO_GLOW_BOTTOM = (
-  <div
-    className="absolute bottom-0 right-0 w-48 h-48 rounded-full pointer-events-none"
-    style={{ background: 'radial-gradient(ellipse, rgba(255,185,0,0.05) 0%, transparent 70%)' }}
-  />
-);
-const GOLD_DIVIDER = (
-  <div
-    className="my-4 h-px w-16"
-    style={{ background: 'linear-gradient(90deg, transparent, #ffb900, transparent)' }}
-  />
-);
-const WHATSAPP_SVG = (
-  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white" xmlns="http://www.w3.org/2000/svg">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-  </svg>
-);
+
 // Stable query string constant (rerender-dependencies: avoids new string ref per render)
-const MOBILE_QUERY = '(max-width: 1023px)' as const;
+const MOBILE_QUERY = '(max-width: 767px)' as const;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -107,7 +90,7 @@ const CONFIRM_CLOSED: ConfirmState = {
 
 // ─── Default company settings ─────────────────────────────────────────────────
 
-const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
+export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   logoUrl: '',
   name: 'INNOBILIA',
   subtitle: 'Asesores',
@@ -116,8 +99,6 @@ const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   facebookUrl: 'https://facebook.com/innobilia',
   instagramUrl: 'https://instagram.com/innobilia.asesoresinversiones',
   whatsappUrl: 'https://wa.me/5218110000000',
-  // Blocker 2: use env var — never hardcode secrets in source code
-  adminSecret: import.meta.env.VITE_ADMIN_SECRET ?? 'cambiar-en-produccion',
 };
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
@@ -131,13 +112,15 @@ function PropertyDetailModal({
   onClose,
   onOpenBooking,
   onRegisterClick,
-  onWhatsApp
+  onWhatsApp,
+  dialogRef
 }: {
   property: Property | null;
   onClose: () => void;
   onOpenBooking: () => void;
   onRegisterClick: (id: string) => void;
   onWhatsApp: (p: Property) => void;
+  dialogRef: React.RefObject<HTMLDialogElement | null>;
 }) {
   const { isVisible, animClass, close } = useModal(!!property, onClose);
   const prevProperty = useRef<Property | null>(null);
@@ -151,19 +134,26 @@ function PropertyDetailModal({
   if (!isVisible || !displayProp) return null;
 
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
       aria-modal="true"
       aria-label={displayProp.title}
     >
       <div
         className={`fixed inset-0 bg-slate-900/70 backdrop-blur-sm ${animClass.overlay}`}
         onClick={close}
+        aria-label='Close-overlay'
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') close();
+        }}
       />
       <div className={`relative z-10 w-full max-w-lg max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col ${animClass.panel}`}>
         <button
           onClick={close}
+          type='button'
           className="absolute top-3 right-3 z-20 p-1.5 rounded-full bg-white/90 backdrop-blur-sm text-slate-500 hover:text-slate-900 hover:bg-white shadow-md transition-all cursor-pointer"
           aria-label="Cerrar detalle de propiedad"
         >
@@ -171,6 +161,7 @@ function PropertyDetailModal({
         </button>
         <div className="flex-1 overflow-y-auto overscroll-contain">
           <PropertyDetailSidebar
+            dialogRef={dialogRef}
             property={displayProp}
             onClose={close}
             onOpenBooking={onOpenBooking}
@@ -179,13 +170,16 @@ function PropertyDetailModal({
           />
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
 
 
 
 export default function App() {
+  // Global dialog ref for modals
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
   // rerender-dependencies: stable constant ref avoids new string on every render
   const isMobile = useMediaQuery(MOBILE_QUERY);
 
@@ -226,7 +220,7 @@ export default function App() {
   const [isDbSyncing, setIsDbSyncing] = useState(true);
 
   // 3. Filters
-  const [selectedLocation, setSelectedLocation] = useState<string>('all');
+  const [selectedPropertyType, setSelectedPropertyType] = useState('all');
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('all');
   const [customMinPrice, setCustomMinPrice] = useState<string>('');
   const [customMaxPrice, setCustomMaxPrice] = useState<string>('');
@@ -244,9 +238,11 @@ export default function App() {
   const [showWaModal, setShowWaModal] = useState(false);
   const [waModalProperty, setWaModalProperty] = useState<Property | null>(null);
   const [waModalPhone, setWaModalPhone] = useState<string>('');
+  const [waModalMode, setWaModalMode] = useState<'lead' | 'owner/broker'>('lead');
   const [identityFocusField, setIdentityFocusField] = useState<
     'logoUrl' | 'name' | 'subtitle' | 'description' | 'facebookUrl' | 'adminSecret' | 'all'
   >('all');
+
 
   // Admin auth modal
   const [showAdminAuthModal, setShowAdminAuthModal] = useState(false);
@@ -261,27 +257,26 @@ export default function App() {
   // 6. Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const handleAdminLogin = async () => {
+  const handleAdminLogin = () => {
     if (adminAuthInput === companySettings.adminSecret) {
-
+      // Contraseña correcta: activar modo admin
       // Mostramos un toast o estado de carga opcional si deseas, ya que esto toma un segundo
-      try {
-        // INICIO DE SESIÓN OCULTO EN SUPABASE
-        // Reemplaza esto con un correo y clave que registres en Authentication de Supabase
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: "[EMAIL_ADDRESS]",
-          password: "[PASSWORD]"
-        });
+      // try {
+      //   // INICIO DE SESIÓN OCULTO EN SUPABASE
+      //   // Reemplaza esto con un correo y clave que registres en Authentication de Supabase
+      //   const { data, error } = await supabase.auth.signInWithPassword({
+      //     email: adminEmailInput,
+      //     password: adminAuthInput
+      //   });
 
-        if (error) {
-          console.error("Error crítico autenticando en Supabase:", error.message);
-          // Opcional: puedes alertar al desarrollador, pero dejamos pasar al admin localmente si lo deseas
-        }
-      } catch (err) {
-        console.error("Fallo de red con Supabase:", err);
-      }
-
-      // Flujo normal de tu interfaz
+      //   if (error || !data.session) {
+      //     setAdminAuthError(true);
+      //     return;
+      //   }
+      // } catch (err) {
+      //   console.error('Fallo de red con Supabase:', err);
+      //   setAdminAuthError(true);
+      // }
       setRole('admin');
       closeAuth();
       showToast('¡Bienvenido! Modo Administrador activado.');
@@ -297,40 +292,46 @@ export default function App() {
   // shell (from localStorage) renders instantly, then data fills in.
 
 
+
   useEffect(() => {
     async function loadData() {
       try {
-        // 1. Fetch properties
-        const dbProperties = await fetchProperties();
+        // Disparamos las 4 consultas principales EN PARALELO
+        const [dbProperties, dbAppointments, dbSettings, dbAnalytics] = await Promise.all([
+          fetchProperties(),
+          fetchAppointments(),
+          fetchCompanySettings(),
+          fetchAnalytics()
+        ]);
+
+        // 1. Procesar Properties
         if (dbProperties && dbProperties.length > 0) {
-          // DB has data — use it as source of truth
           setProperties(dbProperties);
           lsSet('innobilia_properties', dbProperties);
         } else if (dbProperties !== null && dbProperties.length === 0) {
-          // DB returned empty array (first run) — seed with initial data
           setProperties(INITIAL_PROPERTIES);
-          for (const prop of INITIAL_PROPERTIES) {
-            await upsertProperty(prop);
-          }
+          // NOTA: Si INITIAL_PROPERTIES es muy grande, este bucle puede ralentizar.
+          // Lo ideal sería una función "upsertAllProperties" en el backend,
+          // pero por ahora lo dejamos correr en segundo plano sin bloquear el resto.
+          (async () => {
+            const promiseUpsert = INITIAL_PROPERTIES.map(prop => upsertProperty(prop))
+            await Promise.all(promiseUpsert);
+          })();
         }
-        // If dbProperties is null (Supabase error/offline), keep whatever is in state (from localStorage)
 
-        // 2. Fetch appointments
-        const dbAppointments = await fetchAppointments();
+        // 2. Procesar Appointments
         if (dbAppointments && dbAppointments.length > 0) {
           setAppointments(dbAppointments);
         }
 
-        // 3. Fetch company settings
-        const dbSettings = await fetchCompanySettings();
+        // 3. Procesar Company Settings
         if (dbSettings && dbSettings.name) {
           setCompanySettings(prev => ({ ...prev, ...dbSettings }));
         } else {
           await upsertCompanySettings(DEFAULT_COMPANY_SETTINGS);
         }
 
-        // 4. Fetch analytics and increment visit counter
-        const dbAnalytics = await fetchAnalytics();
+        // 4. Procesar Analytics
         const currentAnalytics: AnalyticsSummary = dbAnalytics || {
           totalVisits: 0,
           totalShares: 0,
@@ -344,7 +345,10 @@ export default function App() {
         };
         setAnalytics(updatedAnalytics);
         lsSet('innobilia_analytics', updatedAnalytics);
-        await upsertAnalytics(updatedAnalytics);
+
+        // El guardado de analíticas no debe retrasar la UI, lo disparamos en segundo plano
+        upsertAnalytics(updatedAnalytics).catch(err => console.error("Error saving analytics:", err));
+
       } catch (err) {
         console.warn('[innobilia] Error syncing with Supabase:', err);
       } finally {
@@ -352,19 +356,20 @@ export default function App() {
       }
     }
 
-    // Defer DB fetch until after first paint so the structure renders immediately
-    if ('requestIdleCallback' in window) {
-      (window as Window & { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(loadData);
-    } else {
-      setTimeout(loadData, 0);
-    }
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSaveCompanySettings = useCallback((newSettings: CompanySettings) => {
     setCompanySettings(newSettings);
-    upsertCompanySettings(newSettings);
+
   }, []);
+
+  useEffect(() => {
+    if (companySettings) {
+      upsertCompanySettings(companySettings);
+    }
+  }, [companySettings])
 
   // Persist state changes — using lsSet (js-cache-storage)
   useEffect(() => { lsSet('innobilia_properties', properties); }, [properties]);
@@ -385,13 +390,18 @@ export default function App() {
 
   // rerender-use-ref-transient-values: cancel previous timer before setting new one
   const showToast = useCallback((message: string) => {
-    if (toastTimerRef.current !== null) clearTimeout(toastTimerRef.current);
     setToastMessage(message);
-    toastTimerRef.current = setTimeout(() => {
-      setToastMessage(null);
-      toastTimerRef.current = null;
-    }, 3000);
   }, []);
+
+  useEffect(() => {
+    if (!toastTimerRef) return;
+
+    const timer = setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   const openConfirm = useCallback((opts: Omit<ConfirmState, 'isOpen'>) => {
     setConfirmState({ isOpen: true, ...opts });
@@ -403,16 +413,36 @@ export default function App() {
   useEffect(() => {
     const hash = window.location.hash;
     const prefix = '#access=';
-    if (hash.startsWith(prefix)) {
-      const access = hash.slice(prefix.length);
-      const secret = companySettings.adminSecret;
-      if (access && access === secret) {
-        setRole('admin');
-        showToast('¡Acceso Administrador concedido mediante enlace seguro!');
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    if (!hash.startsWith(prefix)) return;
+    const accessToken = hash.slice(prefix.length);
+    if (!accessToken) return;
+
+    // 1. Creamos una función asíncrona interna para no bloquear el render
+    const verifyAccess = async () => {
+      try {
+        // 2. Le pedimos a Supabase que verifique el secreto en el Servidor
+        // (Jamás descargamos el 'adminSecret' al frontend)
+        const { data: isValid, error } = await supabase.rpc('verify_admin_hash', {
+          input_hash: accessToken
+        });
+
+        if (isValid && !error) {
+          setRole('admin');
+          showToast('¡Acceso Administrador concedido mediante enlace seguro!');
+
+          // Limpiamos la URL para que no quede rastro del token
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        } else {
+          console.warn("Intento de acceso administrador inválido.");
+        }
+      } catch (err) {
+        console.error("Error en la autenticación:", err);
       }
-    }
-  }, [companySettings.adminSecret, showToast]);
+    };
+
+    verifyAccess();
+  }, [showToast]);
 
   // ─── Property handlers ─────────────────────────────────────────────────────
 
@@ -483,13 +513,27 @@ export default function App() {
     let updated: AnalyticsSummary | null = null;
     const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
     setAnalytics(prev => {
-      const propClicks = { ...prev.propertyClicks, [propertyId]: (prev.propertyClicks[propertyId] || 0) + 1 };
-      // Update dailyClicks: today -> propertyId -> count
-      const dayEntry = { ...(prev.dailyClicks[today] || {}), [propertyId]: ((prev.dailyClicks[today]?.[propertyId] || 0) + 1) };
-      const dailyClicks = { ...prev.dailyClicks, [today]: dayEntry };
-      updated = { ...prev, propertyClicks: propClicks, dailyClicks };
-      lsSet('innobilia_analytics', updated);
-      return updated;
+      const propClicks = {
+        ...prev.propertyClicks,
+        [propertyId]: (prev.propertyClicks[propertyId] || 0) + 1
+      };
+
+      const dayEntry = {
+        ...(prev.dailyClicks[today] || {}),
+        [propertyId]: (prev.dailyClicks[today]?.[propertyId] || 0) + 1
+      };
+
+      const dailyClicks = {
+        ...prev.dailyClicks,
+        [today]: dayEntry
+      };
+
+      // Solo calculamos y retornamos el nuevo estado, sin efectos secundarios
+      return {
+        ...prev,
+        propertyClicks: propClicks,
+        dailyClicks
+      };
     });
     if (updated) {
       upsertAnalytics(updated);
@@ -497,13 +541,25 @@ export default function App() {
     incrementPropertyClicks(propertyId);
   }, []);
 
+  useEffect(() => {
+    if (analytics) {
+      lsSet('innobilia_analytics', analytics);
+    }
+  }, [analytics]);
+
   const handleRegisterShare = useCallback((propertyId: string) => {
     let updated: AnalyticsSummary | null = null;
     setAnalytics(prev => {
-      const propShares = { ...prev.propertyShares, [propertyId]: (prev.propertyShares[propertyId] || 0) + 1 };
-      updated = { ...prev, totalShares: prev.totalShares + 1, propertyShares: propShares };
-      lsSet('innobilia_analytics', updated);
-      return updated;
+      const propShares = {
+        ...prev.propertyShares,
+        [propertyId]: (prev.propertyShares[propertyId] || 0) + 1
+      };
+      // Retornamos únicamente el nuevo estado calculado
+      return {
+        ...prev,
+        totalShares: prev.totalShares + 1,
+        propertyShares: propShares
+      };
     });
     if (updated) {
       upsertAnalytics(updated);
@@ -518,17 +574,23 @@ export default function App() {
       message: '¿Seguro que deseas reiniciar los contadores de analíticas a cero? No se puede deshacer.',
       confirmLabel: 'Sí, restablecer',
       variant: 'warning',
-      onConfirm: () => {
+      onConfirm: async () => {
         const reset: AnalyticsSummary = { totalVisits: 1, totalShares: 0, propertyClicks: {}, propertyShares: {}, dailyClicks: {} };
         setAnalytics(reset);
-        lsSet('innobilia_analytics', reset);
-        showToast('Contadores de analíticas restablecidos a cero.');
         closeConfirm();
-        // Reset in Supabase
-        upsertAnalytics(reset);
+        showToast('Contadores de analíticas restablecidos a cero.');
+
+        try {
+          lsSet('innobilia_analytics', reset);
+
+          // Reset in Supabase
+          await upsertAnalytics(reset);
+        } catch (err) {
+          console.error("Error al sincronizar el reset en Supabase:", err);
+        }
       },
     });
-  }, [showToast]);
+  }, [showToast, openConfirm, closeConfirm]);
 
   // ─── Share handlers ────────────────────────────────────────────────────────
 
@@ -612,19 +674,20 @@ export default function App() {
   const uniqueLocations: string[] = [...new Set<string>(properties.map(p => p.location))];
 
   const filteredProperties = properties.filter(p => {
-    const matchLocation = selectedLocation === 'all' || p.location === selectedLocation;
+    const matchesPropertyType = selectedPropertyType === 'all' || p.title.toLowerCase().includes(selectedPropertyType.toLowerCase());
 
     let matchPrice = true;
     if (selectedPriceRange === 'custom') {
       const min = customMinPrice ? Number(customMinPrice) : 0;
       const max = customMaxPrice ? Number(customMaxPrice) : Infinity;
       matchPrice = p.price >= min && p.price <= max;
-    } else if (selectedPriceRange === 'under-150k') {
-      matchPrice = p.price < 150000;
-    } else if (selectedPriceRange === '150k-300k') {
-      matchPrice = p.price >= 150000 && p.price <= 300000;
-    } else if (selectedPriceRange === 'above-300k') {
-      matchPrice = p.price > 300000;
+    } else if (selectedPriceRange !== 'all') {
+      // Buscamos dinámicamente el rango en nuestra configuración
+      const rangeConfig = PRICE_RANGES.find(r => r.id === selectedPriceRange);
+
+      if (rangeConfig) {
+        matchPrice = p.price >= rangeConfig.min && p.price <= rangeConfig.max;
+      }
     }
 
     const matchSearch =
@@ -632,13 +695,13 @@ export default function App() {
       p.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.location.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchLocation && matchPrice && matchSearch;
+    return matchesPropertyType && matchPrice && matchSearch;
   });
 
   // rerender-transitions: clear filters is non-urgent, wrap in startTransition
   const handleClearFilters = useCallback(() => {
     startFilterTransition(() => {
-      setSelectedLocation('all');
+      setSelectedPropertyType('all');
       setSelectedPriceRange('all');
       setSearchQuery('');
       setCustomMinPrice('');
@@ -652,6 +715,7 @@ export default function App() {
     handleRegisterClick(p.id);
     setWaModalProperty(p);
     setWaModalPhone(p.whatsappNumber);
+    setWaModalMode('lead')
     setShowWaModal(true);
   }, [handleRegisterClick]);
 
@@ -691,6 +755,7 @@ export default function App() {
 
         {role === 'client' ? (
           <button
+            type='button'
             onClick={() => {
               setAdminAuthInput('');
               setAdminAuthError(false);
@@ -706,6 +771,7 @@ export default function App() {
           <div className="flex items-center gap-1 p-1 rounded-xl border"
             style={{ background: '#f1f5f9', borderColor: '#e2e8f0' }}>
             <button
+              type='button'
               onClick={() => { setRole('client'); showToast('Has regresado a la vista de cliente.'); }}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm"
               style={{ background: '#fff', color: '#0f172b' }}
@@ -734,97 +800,11 @@ export default function App() {
         <div className="space-y-5">
 
           {/* Identity Hero Card */}
-          <div className="hero-glow relative overflow-hidden rounded-2xl border flex flex-col items-center text-center py-10 px-6 sm:px-10"
-            style={{ background: 'linear-gradient(160deg, #f8fafc 0%, #f1f5f9 100%)', borderColor: '#e2e8f0' }}>
-
-            {/* rendering-hoist-jsx: static decorative elements hoisted to module scope */}
-            {HERO_GLOW_TOP}
-            {HERO_GLOW_BOTTOM}
-
-            {/* Logo */}
-            <div className="relative mb-5">
-              {companySettings.logoUrl ? (
-                <div className="relative h-24 w-24 rounded-full overflow-hidden flex items-center justify-center"
-                  style={{ boxShadow: '0 0 0 3px #ffb900, 0 8px 32px rgba(255,185,0,0.18)', background: '#f1f5f9' }}>
-                  <img src={companySettings.logoUrl} alt="Logo Empresa" className="h-full w-full object-cover"
-                    referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                  {role === 'admin' ? (
-                    <button onClick={() => { setIdentityFocusField('logoUrl'); setShowIdentityModal(true); }}
-                      className="absolute bottom-0 right-0 p-1.5 rounded-full shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                      style={{ background: '#0f172b', border: '1px solid #1e293b' }} title="Editar foto">
-                      <Edit className="h-3 w-3" style={{ color: '#ffb900' }} />
-                    </button>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="relative p-5 rounded-2xl flex items-center justify-center"
-                  style={{ background: '#0f172b', boxShadow: '0 0 0 3px rgba(255,185,0,0.4), 0 8px 24px rgba(15,23,43,0.25)' }}>
-                  <Building2 className="h-9 w-9" style={{ color: '#ffb900' }} />
-                  {role === 'admin' ? (
-                    <button onClick={() => { setIdentityFocusField('logoUrl'); setShowIdentityModal(true); }}
-                      className="absolute -bottom-1.5 -right-1.5 p-1.5 rounded-full shadow-lg hover:scale-110 transition-transform cursor-pointer"
-                      style={{ background: '#ffb900', color: '#0f172b' }} title="Subir foto">
-                      <Edit className="h-3 w-3" />
-                    </button>
-                  ) : null}
-                </div>
-              )}
-            </div>
-
-            {/* Brand title — Playfair Display */}
-            <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight flex items-center justify-center gap-2.5"
-              style={{ color: '#0f172b' }}>
-              <span>{companySettings.name || 'INNOBILIA'}</span>
-              <span className="font-display italic text-base sm:text-lg font-normal" style={{ color: '#ffb900' }}>
-                {companySettings.subtitle || 'Asesores'}
-              </span>
-              {role === 'admin' ? (
-                <button onClick={() => { setIdentityFocusField('name'); setShowIdentityModal(true); }}
-                  className="p-1 rounded-lg transition-colors cursor-pointer opacity-60 hover:opacity-100"
-                  style={{ color: '#cc9a00' }} title="Editar nombre">
-                  <Edit className="h-3.5 w-3.5" />
-                </button>
-              ) : null}
-            </h1>
-
-            {/* rendering-hoist-jsx: static gold divider hoisted to module scope */}
-            {GOLD_DIVIDER}
-
-            <div className="flex items-center justify-center gap-1.5 max-w-sm">
-              <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>{companySettings.description}</p>
-              {role === 'admin' ? (
-                <button onClick={() => { setIdentityFocusField('description'); setShowIdentityModal(true); }}
-                  className="shrink-0 p-1 rounded-lg opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-                  style={{ color: '#cc9a00' }}>
-                  <Edit className="h-3.5 w-3.5" />
-                </button>
-              ) : null}
-            </div>
-
-            {role === 'client' && (
-              <div className="mt-4 flex flex-col items-center gap-1">
-                <button
-                  onClick={() => document.getElementById('contact-nav')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="group flex flex-col items-center gap-1 text-[11px] uppercase tracking-widest font-mono cursor-pointer transition-colors"
-                  style={{ color: '#94a3b8' }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.color = '#fe9a00';
-                    const icon = e.currentTarget.querySelector('svg');
-                    if (icon) icon.style.color = '#fe9a00';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.color = '#94a3b8';
-                    const icon = e.currentTarget.querySelector('svg');
-                    if (icon) icon.style.color = '#94a3b8';
-                  }}
-                >
-                  <span>enlaces de contacto</span>
-                  <ChevronDown className="h-4 w-4 animate-bounce mt-0.5 transition-colors" style={{ color: '#94a3b8' }} />
-                </button>
-              </div>
-            )}
-
-          </div>
+          <Hero
+            companySettings={companySettings}
+            role={role}
+            setIdentityFocusField={setIdentityFocusField}
+            setShowIdentityModal={setShowIdentityModal} />
 
           {/* Admin Console (only visible in admin mode) */}
           {role === 'admin' && (
@@ -846,14 +826,14 @@ export default function App() {
           {/* Filters */}
           <FiltersBar
             uniqueLocations={uniqueLocations}
-            selectedLocation={selectedLocation}
+            selectedPropertyType={selectedPropertyType}
             selectedPriceRange={selectedPriceRange}
             searchQuery={searchQuery}
             customMinPrice={customMinPrice}
             customMaxPrice={customMaxPrice}
             filteredCount={filteredProperties.length}
             totalCount={properties.length}
-            onLocationChange={setSelectedLocation}
+            onPropertyTypeChange={setSelectedPropertyType}
             onPriceRangeChange={setSelectedPriceRange}
             onSearchChange={setSearchQuery}
             onCustomMinChange={setCustomMinPrice}
@@ -865,156 +845,55 @@ export default function App() {
 
           {/* Property cards list */}
           {/* rendering-content-visibility: browser skips layout/paint for off-screen cards */}
-          <div className="space-y-3" style={{ contentVisibility: 'auto', containIntrinsicSize: '0 500px' }}>
-            <div className="flex items-center justify-between px-1">
-              <h3 className="font-mono text-[10px] uppercase tracking-widest font-bold"
-                style={{ color: '#a8a29e' }}>
-                Cartera de Propiedades — {filteredProperties.length} disponible{filteredProperties.length !== 1 ? 's' : ''}
-              </h3>
-              {/* Subtle DB sync indicator */}
-              {isDbSyncing && (
-                <span className="flex items-center gap-1 text-[9px] font-mono px-2 py-0.5 rounded-full"
-                  style={{ background: 'rgba(255,185,0,0.08)', color: '#cc9a00', border: '1px solid rgba(255,185,0,0.2)' }}>
-                  <span className="inline-block h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: '#ffb900' }} />
-                  Actualizando
-                </span>
-              )}
-            </div>
-
-            {/* Skeleton cards shown while syncing and no cached properties */}
-            {isDbSyncing && filteredProperties.length === 0 ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="skeleton-card flex gap-0 overflow-hidden rounded-2xl border border-slate-100"
-                    style={{ animationDelay: `${i * 0.08}s` }}>
-                    <div className="skeleton-shimmer w-40 h-28 shrink-0 rounded-l-2xl" />
-                    <div className="flex-1 p-4 space-y-2.5">
-                      <div className="skeleton-shimmer h-3.5 w-3/4 rounded-lg" />
-                      <div className="skeleton-shimmer h-2.5 w-1/2 rounded-lg" />
-                      <div className="flex gap-2 pt-1">
-                        <div className="skeleton-shimmer h-2 w-12 rounded" />
-                        <div className="skeleton-shimmer h-2 w-12 rounded" />
-                        <div className="skeleton-shimmer h-2 w-12 rounded" />
-                      </div>
-                      <div className="skeleton-shimmer h-6 w-24 rounded-lg mt-auto" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : filteredProperties.length === 0 ? (
-              <div className="text-center p-10 rounded-2xl border"
-                style={{ background: 'rgba(248,250,252,0.9)', borderColor: '#e2e8f0', color: '#94a3b8' }}>
-                <Info className="h-8 w-8 mx-auto mb-3" style={{ color: '#cbd5e1' }} />
-                <p className="text-sm">No se encontraron propiedades con los parámetros buscados.</p>
-              </div>
-            ) : (
-              <div className="space-y-3 overflow-y-auto pr-1 scrollbar-hover" style={{ maxHeight: '680px' }}>
-                {filteredProperties.map((p, idx) => (
-                  <PropertyCard
-                    key={p.id}
-                    property={p}
-                    isSelected={selectedProperty?.id === p.id}
-                    role={role}
-                    animationIndex={idx}
-                    onClick={handlePropertyCardClick}
-                    onShare={handleOpenShare}
-                    onEdit={handleEdit}
-                    onDelete={handleDeleteProperty}
-                    onWhatsApp={handleWhatsApp}
-                    onRegisterClick={handleRegisterClick}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <PropertyList
+            filteredProperties={filteredProperties}
+            role={role}
+            isDbSyncing={isDbSyncing}
+            selectedProperty={selectedProperty}
+            handlePropertyCardClick={handlePropertyCardClick}
+            handleOpenShare={handleOpenShare}
+            handleEdit={handleEdit}
+            handleDeleteProperty={handleDeleteProperty}
+            handleWhatsApp={handleWhatsApp}
+            handleRegisterClick={handleRegisterClick}
+          />
 
 
           {/* Social media contact — luxury style */}
           {role === 'client' ? (
-            <nav id="contact-nav" aria-label="Canales Oficiales de Contacto" className="pt-6 border-t space-y-3"
-              style={{ borderColor: '#e2e8f0' }}>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-center" style={{ color: '#94a3b8' }}>
-                Canales Oficiales
-              </p>
-              <div className="flex items-center justify-center gap-3">
-                {companySettings.instagramUrl ? (
-                  <a href={companySettings.instagramUrl} target="_blank" rel="noopener noreferrer"
-                    aria-label="Síguenos en Instagram" title="Instagram"
-                    className="flex items-center justify-center w-12 h-12 text-white rounded-2xl shadow-md transition-all hover:scale-110 hover:shadow-lg cursor-pointer"
-                    style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
-                    <Instagram className="h-5 w-5" />
-                  </a>
-                ) : null}
-                {companySettings.whatsappUrl ? (
-                  <button
-                    onClick={() => {
-                      setWaModalProperty(null);
-                      setWaModalPhone(companySettings.whatsappUrl.replace('https://wa.me/', ''));
-                      setShowWaModal(true);
-                    }}
-                    aria-label="Contáctanos por WhatsApp" title="WhatsApp"
-                    className="flex items-center justify-center w-12 h-12 text-white rounded-2xl shadow-md transition-all hover:scale-110 hover:shadow-lg cursor-pointer"
-                    style={{ background: '#25D366' }}>
-                    {/* rendering-hoist-jsx: WhatsApp SVG hoisted to module scope */}
-                    {WHATSAPP_SVG}
-                  </button>
-                ) : null}
-                {companySettings.facebookUrl ? (
-                  <a
-                    href={companySettings.facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Síguenos en Facebook" title="Facebook"
-                    className="flex items-center justify-center w-12 h-12 text-white rounded-2xl shadow-md transition-all hover:scale-110 hover:shadow-lg cursor-pointer"
-                    style={{ background: '#1877F2' }}
-                  >
-                    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                    </svg>
-                  </a>
-                ) : null}
-              </div>
-            </nav>
+            <SocialContactNav
+              setWaModalProperty={setWaModalProperty}
+              setWaModalPhone={setWaModalPhone}
+              setWaModalMode={setWaModalMode}
+              setShowWaModal={setShowWaModal}
+              companySettings={companySettings}
+            />
           ) : null}
         </div>
       </main>
 
       {/* Footer — dark luxury */}
-      <footer className="border-t py-8 text-center text-xs mt-auto"
-        style={{ background: '#0f172b', borderColor: '#1e293b' }}>
-        <div className="max-w-3xl mx-auto px-4 space-y-2">
-          <p className="font-display text-base font-semibold" style={{ color: '#ffb900' }}>
-            Innobilia
-          </p>
-          <p className="text-[10px] font-mono tracking-wider" style={{ color: '#475569' }}>
-            Real Estate Hub © 2026 — Todos los derechos reservados
-          </p>
-          <div className="pt-3 border-t flex justify-center" style={{ borderColor: '#1e293b' }}>
-            {role === 'client' ? (
-              <button
-                onClick={() => {
-                  setAdminAuthInput('');
-                  setAdminAuthError(false);
-                  setShowAdminAuthModal(true);
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-mono font-bold transition-colors cursor-pointer"
-                style={{ background: 'rgba(255,185,0,0.06)', borderColor: 'rgba(255,185,0,0.2)', color: '#64748b' }}
-              >
-                <Lock className="h-3 w-3" style={{ color: '#334155' }} />
-                Acceso Agentes
-              </button>
-            ) : (
-              <button
-                onClick={() => { setRole('client'); showToast('Cerraste sesión de administrador'); }}
-                className="text-[10px] font-mono transition-colors cursor-pointer hover:opacity-80"
-                style={{ color: '#475569' }}
-              >
-                Cerrar sesión administrativa
-              </button>
-            )}
-          </div>
-        </div>
-      </footer>
+      <Footer
+        role={role}
+        setRole={setRole}
+        showToast={showToast}
+        companySettings={companySettings}
+        setAdminAuthInput={setAdminAuthInput}
+        setAdminAuthError={setAdminAuthError}
+        setShowAdminAuthModal={setShowAdminAuthModal}
+        setWaModalProperty={setWaModalProperty}
+        setWaModalPhone={setWaModalPhone}
+        setWaModalMode={setWaModalMode}
+        setShowWaModal={setShowWaModal}
+      />
+
+      {isMobile && role === 'client' ? (
+        <MobileFloatingButtons
+          setWaModalPhone={setWaModalPhone}
+          setWaModalMode={setWaModalMode}
+          setShowWaModal={setShowWaModal}
+        />
+      ) : null}
 
       {/* ── Modals ─────────────────────────────────────────────────────────
            bundle-dynamic-imports: heavy modals wrapped in Suspense so their
@@ -1031,8 +910,10 @@ export default function App() {
           onWhatsApp={(p) => {
             setWaModalProperty(p);
             setWaModalPhone(p.whatsappNumber);
+            setWaModalMode('lead');
             setShowWaModal(true);
           }}
+          dialogRef={dialogRef}
         />
 
         {/* Appointment form modal */}
@@ -1058,6 +939,7 @@ export default function App() {
         {/* Share modal */}
         {showShareModal && propertyToShare && (
           <ShareModal
+            dialogRef={dialogRef}
             property={propertyToShare}
             isOpen={showShareModal}
             onClose={() => { setShowShareModal(false); setPropertyToShare(null); }}
@@ -1067,6 +949,8 @@ export default function App() {
 
         {/* Identity modal */}
         <IdentityModal
+          dialogRef={dialogRef}
+          key={showIdentityModal ? "abierto" : "cerrado"}
           isOpen={showIdentityModal}
           onClose={() => setShowIdentityModal(false)}
           companySettings={companySettings}
@@ -1077,6 +961,7 @@ export default function App() {
 
         {/* Confirm modal (replaces window.confirm) */}
         <ConfirmModal
+          dialogRef={dialogRef}
           isOpen={confirmState.isOpen}
           title={confirmState.title}
           message={confirmState.message}
@@ -1088,106 +973,30 @@ export default function App() {
 
         {/* WhatsApp lead modal */}
         <WhatsAppLeadModal
+          dialogRef={dialogRef}
           isOpen={showWaModal}
           onClose={() => setShowWaModal(false)}
           property={waModalProperty}
           targetPhone={waModalPhone}
           brokerName="Iraida"
+          mode={waModalMode}
           onSend={handleWhatsAppLeadSubmit}
         />
 
         {/* Admin Authentication Modal */}
         {isAuthVisible ? (
-          <div
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="admin-auth-modal-title"
-          >
-            {/* Backdrop */}
-            <div
-              className={`fixed inset-0 bg-slate-900/70 backdrop-blur-sm ${authAnim.overlay}`}
-              onClick={closeAuth}
-            />
-            <div className={`relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border flex flex-col ${authAnim.panel}`}
-              style={{ background: '#0f172b', borderColor: '#1e293b' }}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: '#1e293b' }}>
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg" style={{ background: '#1e293b' }}>
-                    <Lock className="h-4 w-4" style={{ color: '#ffb900' }} />
-                  </div>
-                  <div>
-                    <h3 id="admin-auth-modal-title" className="text-sm font-bold" style={{ color: '#f8fafc' }}>
-                      Acceso Administrativo
-                    </h3>
-                    <p className="text-[10px] font-mono" style={{ color: '#475569' }}>Solo para asesores autorizados</p>
-                  </div>
-                </div>
-                <button
-                  onClick={closeAuth}
-                  className="p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
-                  style={{ color: '#64748b' }}
-                  aria-label="Cerrar modal de acceso"
-                >                <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Body */}
-              <div className="px-5 py-5 space-y-4">
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-mono font-bold uppercase" style={{ color: '#64748b' }}>
-                    Clave de Acceso
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showAdminPassword ? 'text' : 'password'}
-                      autoFocus
-                      placeholder="Ingresa clave secrecta"
-                      value={adminAuthInput}
-                      onChange={(e) => { setAdminAuthInput(e.target.value); setAdminAuthError(false); }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleAdminLogin();
-                        }
-                      }}
-                      className="w-full rounded-xl border px-4 py-2.5 pr-11 text-sm focus:outline-none font-mono"
-                      style={{
-                        background: '#1e293b',
-                        borderColor: adminAuthError ? '#ef4444' : '#334155',
-                        color: '#f8fafc',
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowAdminPassword(prev => !prev)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors cursor-pointer"
-                      style={{ color: showAdminPassword ? '#ffb900' : '#475569' }}
-                      aria-label={showAdminPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    >
-                      {showAdminPassword
-                        ? <EyeOff className="h-4 w-4" />
-                        : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {adminAuthError ? (
-                    <p className="text-[11px] font-semibold" style={{ color: '#ef4444' }}>
-                      Clave incorrecta. Inténtalo de nuevo.
-                    </p>
-                  ) : null}
-                </div>
-
-                <button
-                  onClick={handleAdminLogin}
-                  className="w-full py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 cursor-pointer"
-                  style={{ background: '#ffb900', color: '#0f172b' }}
-                >
-                  Ingresar al Panel
-                </button>
-              </div>
-            </div>
-          </div>
+          <AdminAuthModal
+            dialogRef={dialogRef}
+            authAnim={authAnim}
+            closeAuth={closeAuth}
+            adminAuthInput={adminAuthInput}
+            setAdminAuthInput={setAdminAuthInput}
+            adminAuthError={adminAuthError}
+            setAdminAuthError={setAdminAuthError}
+            showAdminPassword={showAdminPassword}
+            setShowAdminPassword={setShowAdminPassword}
+            handleAdminLogin={handleAdminLogin}
+          />
         ) : null}
 
       </Suspense>

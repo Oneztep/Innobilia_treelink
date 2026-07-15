@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
-import { SlidersHorizontal, MapPin, Search, Info, X, ChevronDown, Check, DollarSign, Plus } from 'lucide-react';
+import { SlidersHorizontal, Home, Search, Info, X, ChevronDown, Check, DollarSign, Plus } from 'lucide-react';
+import { PRICE_RANGES } from '../config/filters';
 
 interface FiltersBarProps {
   uniqueLocations: string[];
-  selectedLocation: string;
+  selectedPropertyType: string;
   selectedPriceRange: string;
   searchQuery: string;
   customMinPrice: string;
   customMaxPrice: string;
   filteredCount: number;
   totalCount: number;
-  onLocationChange: (v: string) => void;
+  onPropertyTypeChange: (v: string) => void;
   onPriceRangeChange: (v: string) => void;
   onSearchChange: (v: string) => void;
   onCustomMinChange: (v: string) => void;
@@ -125,6 +126,8 @@ const CustomSelect = memo(function CustomSelect({ value, options, onChange, icon
   );
 });
 
+
+
 /**
  * Barra de filtros de propiedades.
  * Extraída de App.tsx para reducir el tamaño del archivo principal.
@@ -132,16 +135,35 @@ const CustomSelect = memo(function CustomSelect({ value, options, onChange, icon
  * rendering-hoist-jsx: the @keyframes + scrollbar CSS moved to index.css
  * so it doesn't get injected into the DOM on every render.
  */
+const propertyTypeOptions: SelectOption[] = [
+  { value: 'all', label: 'Todos los tipos' },
+  { value: "anexo", label: "anexo" },
+  { value: 'casa', label: 'Casa' },
+  { value: 'townhouse', label: 'town house' },
+  { value: 'departamento', label: 'Departamento' },
+  { value: 'terreno', label: 'Terreno' },
+  { value: 'local', label: 'Local Comercial' },
+  { value: "oficina", label: "oficina" },
+];
+
+const priceOptions: SelectOption[] = [
+  { value: 'all', label: 'Cualquier presupuesto' },
+  ...PRICE_RANGES.map(range => ({ value: range.id, label: range.label })),
+  { value: 'custom', label: 'Monto personalizado', emoji: '💰' },
+];
+const DOLLAR_ICON = <DollarSign className="h-3.5 w-3.5" />;
+const HOME_ICON = <Home className="h-3.5 w-3.5" />;
+
 export default function FiltersBar({
   uniqueLocations,
-  selectedLocation,
+  selectedPropertyType,
   selectedPriceRange,
   searchQuery,
   customMinPrice,
   customMaxPrice,
   filteredCount,
   totalCount,
-  onLocationChange,
+  onPropertyTypeChange,
   onPriceRangeChange,
   onSearchChange,
   onCustomMinChange,
@@ -151,20 +173,17 @@ export default function FiltersBar({
   onAddProperty,
 }: FiltersBarProps) {
   const hasActiveFilters =
-    selectedLocation !== 'all' || selectedPriceRange !== 'all' || searchQuery !== '';
+    selectedPropertyType !== 'all' || selectedPriceRange !== 'all' || searchQuery !== '';
 
-  const locationOptions: SelectOption[] = [
-    { value: 'all', label: 'Todas las ubicaciones' },
-    ...uniqueLocations.map(loc => ({ value: loc, label: loc })),
-  ];
-
-  const priceOptions: SelectOption[] = [
-    { value: 'all', label: 'Cualquier presupuesto' },
-    { value: 'under-60k', label: 'Menor a $60k USD' },
-    { value: '60k-100k', label: '$60k – $100k USD' },
-    { value: 'above-100k', label: 'Mayor a $100k USD' },
-    { value: 'custom', label: 'Monto personalizado', emoji: '💰' },
-  ];
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onSearchChange(e.target.value);
+  };
+  const handleCustomMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onCustomMinChange(e.target.value);
+  };
+  const handleCustomMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onCustomMaxChange(e.target.value);
+  };
 
   return (
     <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
@@ -182,6 +201,7 @@ export default function FiltersBar({
           {/* Add property button for admin */}
           {role === 'admin' && onAddProperty && (
             <button
+              type='button'
               onClick={onAddProperty}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white font-bold text-xs shadow hover:-translate-y-0.5 transition-transform"
               style={{ background: '#ffb900' }}
@@ -202,18 +222,19 @@ export default function FiltersBar({
             type="text"
             placeholder="Buscar por nombre o zona..."
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={handleSearchChange}
+            aria-label="search-query"
             className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all hover:border-slate-300 hover:bg-white"
           />
         </div>
 
         {/* Location custom select */}
         <CustomSelect
-          value={selectedLocation}
-          options={locationOptions}
-          onChange={onLocationChange}
-          icon={<MapPin className="h-3.5 w-3.5" />}
-          placeholder="Todas las ubicaciones"
+          value={selectedPropertyType}
+          options={propertyTypeOptions}
+          onChange={onPropertyTypeChange}
+          icon={HOME_ICON}
+          placeholder="Todos los tipos"
         />
 
         {/* Price range custom select */}
@@ -221,7 +242,7 @@ export default function FiltersBar({
           value={selectedPriceRange}
           options={priceOptions}
           onChange={onPriceRangeChange}
-          icon={<DollarSign className="h-3.5 w-3.5" />}
+          icon={DOLLAR_ICON}
           placeholder="Cualquier presupuesto"
         />
 
@@ -234,7 +255,8 @@ export default function FiltersBar({
                 type="number"
                 placeholder="0"
                 value={customMinPrice}
-                onChange={(e) => onCustomMinChange(e.target.value)}
+                onChange={handleCustomMinChange}
+                aria-label="custom-min-price"
                 className="w-full rounded-xl border border-amber-200 bg-amber-50 py-2 pl-12 pr-3 text-xs text-slate-700 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
               />
             </div>
@@ -244,7 +266,8 @@ export default function FiltersBar({
                 type="number"
                 placeholder="Sin límite"
                 value={customMaxPrice}
-                onChange={(e) => onCustomMaxChange(e.target.value)}
+                onChange={handleCustomMaxChange}
+                aria-label="custom-max-price"
                 className="w-full rounded-xl border border-amber-200 bg-amber-50 py-2 pl-12 pr-3 text-xs text-slate-700 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
               />
             </div>
@@ -260,6 +283,7 @@ export default function FiltersBar({
             Mostrando {filteredCount} de {totalCount} propiedades
           </span>
           <button
+            type='button'
             onClick={onClearFilters}
             className="text-amber-700 font-bold hover:underline ml-3 flex items-center gap-1 cursor-pointer"
           >
