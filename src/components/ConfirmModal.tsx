@@ -88,7 +88,7 @@ export default function ConfirmModal({
             >
               {displayTitle}
             </h3>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">{displayMessage}</p>
+            <p className="text-xs text-slate-500 mt- whitespace-pre-line leading-relaxed">{displayMessage}</p>
           </div>
           <button
             type='button'

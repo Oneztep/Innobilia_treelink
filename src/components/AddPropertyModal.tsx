@@ -6,11 +6,13 @@ import { OFFLINE_MODE, supabase } from '../lib/supabase.ts';
 import { uploadImageBatch, deleteImagesFromStorage } from '../lib/storage';
 
 interface AddPropertyModalProps {
+  PropertiesId: string
   isOpen: boolean;
   onClose: () => void;
   onSave: (property: Omit<Property, 'clicks' | 'shares' | 'createdAt'> & { id?: string }) => void;
   editingProperty?: Property | null;
   propertyId?: string;
+  handleUnsavedChanges: () => void;
 }
 
 const DEFAULT_SAMPLE_IMAGES = [
@@ -81,7 +83,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
   }
 }
 
-export default function AddPropertyModal({ isOpen, onClose, onSave, editingProperty }: AddPropertyModalProps) {
+export default function AddPropertyModal({ PropertiesId, isOpen, onClose, onSave, editingProperty, handleUnsavedChanges }: AddPropertyModalProps) {
   const { isVisible, animClass, close } = useModal(isOpen, onClose);
 
   const [formData, dispatch] = useReducer(formReducer, initialFormState);
@@ -120,9 +122,11 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
         }
       });
       setFeatures(editingProperty.features || []);
+      setSavedUrls(editingProperty.images || [])
     } else {
       dispatch({ type: 'RESET' });
       setFeatures([]);
+      setSavedUrls([])
     }
   }, [editingProperty, isOpen]);
 
@@ -407,12 +411,26 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
 
   const totalImagesCount = savedUrls.length + imagesList.length;
 
+  const hasUnsavedChanges = (): boolean => {
+    return (
+      totalImagesCount !== 1 || formData.title !== "" || formData.description !== "" || formData.price !== 0 || formData.location !== "" || formData.bathrooms !== 0 || formData.rooms !== 0 || formData.area !== 0
+    )
+  }
+
+  const handleSafeClose = () => {
+    if (hasUnsavedChanges() && !editingProperty) {
+      handleUnsavedChanges();
+    }
+
+    // Si no hay cambios o el usuario confirmó, se cierra el modal
+    close();
+  };
+
   if (!isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className={`fixed inset-0 bg-slate-900/60 backdrop-blur-md ${animClass.overlay}`} aria-label='Close-overlay' onClick={close} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') close(); }} role="button" tabIndex={0} />
-
+      <div className={`fixed inset-0 bg-slate-900/60 backdrop-blur-md ${animClass.overlay}`} aria-label='Close-overlay' onClick={handleSafeClose} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSafeClose; }} role="button" tabIndex={0} />
       <div className={`relative w-[90%] max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] mx-auto ${animClass.panel}`}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50">
@@ -426,7 +444,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
               {editingProperty ? `ID: ${editingProperty.id}` : 'Completa los campos para listar el inmueble estilo Innobilia'}
             </p>
           </div>
-          <button type="button" onClick={close} aria-label="Close modal" className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
+          <button type="button" onClick={handleSafeClose} aria-label="Close modal" className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -527,7 +545,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
                 required
                 min={1}
                 value={formData.price}
-                onChange={(e) => dispatch({ type: 'CHANGE_FIELD', field: 'price', value: Number(e.target.value) })}
+                onChange={(e) => dispatch({ type: 'CHANGE_FIELD', field: 'price', value: e.target.value.replace(/^0+(?=\d)/, '') })}
                 className="w-full rounded-lg border border-slate-200 px-2 py-1.5 bg-white text-slate-800 font-semibold"
               />
             </div>
@@ -546,7 +564,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
                 min={0}
                 required
                 value={formData.rooms}
-                onChange={(e) => dispatch({ type: 'CHANGE_FIELD', field: 'rooms', value: Number(e.target.value) })}
+                onChange={(e) => dispatch({ type: 'CHANGE_FIELD', field: 'rooms', value: e.target.value.replace(/^0+(?=\d)/, '') })}
                 className="w-full rounded-lg border border-slate-200 px-2 py-1.5 bg-white text-slate-800"
               />
             </div>
@@ -566,7 +584,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
                 min={0}
                 required
                 value={formData.bathrooms}
-                onChange={(e) => dispatch({ type: 'CHANGE_FIELD', field: 'bathrooms', value: Number(e.target.value) })}
+                onChange={(e) => dispatch({ type: 'CHANGE_FIELD', field: 'bathrooms', value: e.target.value.replace(/^0+(?=\d)/, '') })}
                 className="w-full rounded-lg border border-slate-200 px-2 py-1.5 bg-white text-slate-800"
               />
             </div>
@@ -585,7 +603,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
                 min={0}
                 required
                 value={formData.area}
-                onChange={(e) => dispatch({ type: 'CHANGE_FIELD', field: 'area', value: Number(e.target.value) })}
+                onChange={(e) => dispatch({ type: 'CHANGE_FIELD', field: 'area', value: e.target.value.replace(/^0+(?=\d)/, '') })}
                 className="w-full rounded-lg border border-slate-200 px-2 py-1.5 bg-white text-slate-800"
               />
             </div>
@@ -644,7 +662,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSave, editingPrope
                     {/* URLs guardadas en Supabase / Base de Datos */}
                     {savedUrls.map((img, idx) => (
                       <div
-                        key={img}
+                        key={`${img}-${idx}`}
                         draggable
                         onDragStart={() => handleSortStart(idx)}
                         onDragEnter={() => handleSortEnter(idx)}

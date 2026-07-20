@@ -491,7 +491,7 @@ export default function App() {
     openConfirm({
       title: 'Eliminar Propiedad',
       message: '¿Estás completamente seguro de eliminar esta propiedad de la plataforma? Esta acción no se puede deshacer.',
-      confirmLabel: 'Sí, eliminar',
+      confirmLabel: 'Eliminar',
       variant: 'danger',
       onConfirm: () => {
         setProperties(prev => prev.filter(p => p.id !== id));
@@ -505,6 +505,18 @@ export default function App() {
       },
     });
   };
+
+  const handleUnsavedChanges = () => {
+    openConfirm({
+      title: 'Tienes cambios sin guardar',
+      message: '¿Estás completamente seguro?\n Perderás los cambios no guardados.',
+      confirmLabel: 'Cerrar',
+      variant: 'danger',
+      onConfirm: () => {
+        closeConfirm();
+      },
+    });
+  }
 
   // ─── Analytics handlers ────────────────────────────────────────────────────
 
@@ -929,10 +941,12 @@ export default function App() {
         {/* Add / Edit property modal */}
         {showAddModal && (
           <AddPropertyModal
+            PropertiesId={properties.id}
             isOpen={showAddModal}
             onClose={() => { setShowAddModal(false); setEditingProperty(null); }}
             onSave={handleSaveProperty}
             editingProperty={editingProperty}
+            handleUnsavedChanges={handleUnsavedChanges}
           />
         )}
 

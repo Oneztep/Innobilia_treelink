@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, experimental_useEffectEvent as useEffectEvent } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Property } from '../types';
 import {
@@ -65,7 +65,7 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
   }, [onClose]);
 
   // ── Navigate images ─────────────────────────────────────────────────────────
-  const navigate = useEffectEvent((dir: 'prev' | 'next') => {
+  const navigateLogic = (dir: 'prev' | 'next') => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
     zoomRef.current = 1;
@@ -74,10 +74,15 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
         ? (prev + 1) % images.length
         : (prev - 1 + images.length) % images.length
     );
-  });
-  const onKeyboardNavigate = useEffectEvent((direction: 'next' | 'prev') => {
-    navigate(direction);
-  });
+  };
+  const navigateRef = useRef(navigateLogic);
+  navigateRef.current = navigateLogic;
+  const navigate = useCallback((dir: 'prev' | 'next') => navigateRef.current(dir), []);
+
+  const onKeyboardNavigateLogic = (direction: 'next' | 'prev') => navigate(direction);
+  const onKeyboardNavigateRef = useRef(onKeyboardNavigateLogic);
+  onKeyboardNavigateRef.current = onKeyboardNavigateLogic;
+  const onKeyboardNavigate = useCallback((direction: 'next' | 'prev') => onKeyboardNavigateRef.current(direction), []);
 
   // ── Keyboard navigation ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -253,6 +258,7 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
   // Use Number.MAX_SAFE_INTEGER-capped z-index to guarantee being on top of everything.
   const content = (
     <dialog
+      open
       className='fixed inset-0 z-[2147483647] flex flex-col overflow-hidden'
       style={{
         animation: closing ? 'lightboxOut 0.2s ease forwards' : 'lightboxIn 0.22s ease forwards',
@@ -344,11 +350,11 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
             alt={`${title} — foto ${index + 1}`}
             draggable={false}
             referrerPolicy="no-referrer"
-            className="block max-w-full max-h-full w-auto h-auto object-contain pointer-events-none"
+            className="block max-w-full max-h-full w-auto h-auto object-contain pointer-events-none will-change-transform"
             style={{
               transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
               transition: mouseDown ? 'none' : 'transform 0.12s ease',
-              animation: 'lightboxImgIn 0.25s cubic-bezier(0.16,1,0.3,1) both',
+
             }}
           />
         </div>
@@ -361,7 +367,7 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
             {images.map((_, i) => (
               <button
                 type='button'
-                key={index}
+                key={`dot-${i}`}
                 onClick={() => goTo(i)}
                 aria-label={`Ver foto ${i + 1}`}
                 className="border-none p-0 cursor-pointer h-[8px] transition-all duration-200 ease-out shrink-0"
@@ -379,7 +385,7 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
               {images.map((src, i) => (
                 <button
                   type='button'
-                  key={index}
+                  key={src}
                   onClick={() => goTo(i)}
                   aria-label={`Ver foto ${i + 1}`}
                   className="shrink-0 w-[56px] h-[40px] p-0 rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-150 ease-out"
@@ -653,7 +659,7 @@ export default function PropertyDetailSidebar({
 
           <div className="space-y-1.5">
             <span className="text-[10px] uppercase font-mono tracking-wider font-bold block" style={{ color: '#ffb900' }}>Descripción Residencial</span>
-            <p className="text-xs leading-relaxed font-sans text-justify" style={{ color: '#64748b' }}>{property.description}</p>
+            <p className="text-xs leading-relaxed whitespace-pre-line font-sans text-justify" style={{ color: '#64748b' }}>{property.description}</p>
           </div>
 
           {property.features.length > 0 && (
