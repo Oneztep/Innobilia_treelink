@@ -99,6 +99,7 @@ export const DEFAULT_COMPANY_SETTINGS: CompanySettings = {
   facebookUrl: 'https://facebook.com/innobilia',
   instagramUrl: 'https://instagram.com/innobilia.asesoresinversiones',
   whatsappUrl: 'https://wa.me/5218110000000',
+  adminSecret: '[PASSWORD]',
 };
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
@@ -257,29 +258,26 @@ export default function App() {
   // 6. Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const handleAdminLogin = () => {
+  const handleAdminLogin = async () => {
     if (adminAuthInput === companySettings.adminSecret) {
-      // Contraseña correcta: activar modo admin
-      // Mostramos un toast o estado de carga opcional si deseas, ya que esto toma un segundo
-      // try {
-      //   // INICIO DE SESIÓN OCULTO EN SUPABASE
-      //   // Reemplaza esto con un correo y clave que registres en Authentication de Supabase
-      //   const { data, error } = await supabase.auth.signInWithPassword({
-      //     email: adminEmailInput,
-      //     password: adminAuthInput
-      //   });
+      try {
 
-      //   if (error || !data.session) {
-      //     setAdminAuthError(true);
-      //     return;
-      //   }
-      // } catch (err) {
-      //   console.error('Fallo de red con Supabase:', err);
-      //   setAdminAuthError(true);
-      // }
-      setRole('admin');
-      closeAuth();
-      showToast('¡Bienvenido! Modo Administrador activado.');
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: "innobilia.asesoresinversiones@gmail.com",
+          password: adminAuthInput
+        });
+
+        if (error || !data.session) {
+          setAdminAuthError(true);
+          return;
+        }
+        setRole('admin');
+        closeAuth();
+        showToast('¡Bienvenido! Modo Administrador activado.');
+      } catch (err) {
+        console.error('Fallo de red con Supabase:', err);
+        setAdminAuthError(true);
+      }
     } else {
       setAdminAuthError(true);
     }

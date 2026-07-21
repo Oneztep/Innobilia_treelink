@@ -10,6 +10,7 @@ export interface CompanySettings {
   facebookUrl: string;
   instagramUrl: string;
   whatsappUrl: string;
+  adminSecret: string;
 }
 
 interface IdentityModalProps {
@@ -64,6 +65,7 @@ export default function IdentityModal({
       facebookUrl: 'https://facebook.com/innobilia',
       instagramUrl: 'https://instagram.com/innobilia.asesoresinversiones',
       whatsappUrl: 'https://wa.me/5218110000000',
+      adminSecret: '[PASSWORD]',
     };
     setDraft(demo);
     onShowToast('Demostración premium restaurada.');

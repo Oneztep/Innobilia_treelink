@@ -306,6 +306,7 @@ export async function fetchCompanySettings(): Promise<CompanySettings | null> {
     facebookUrl: data.facebook_url ?? '',
     instagramUrl: data.instagram_url ?? '',
     whatsappUrl: data.whatsapp_url ?? '',
+    adminSecret: data.admin_secret ?? '',
   };
 }
 
@@ -322,6 +323,7 @@ export async function upsertCompanySettings(settings: CompanySettings): Promise<
       facebook_url: settings.facebookUrl,
       instagram_url: settings.instagramUrl,
       whatsapp_url: settings.whatsappUrl,
+      admin_secret: settings.adminSecret,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' });
 
