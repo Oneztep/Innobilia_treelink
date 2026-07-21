@@ -137,13 +137,14 @@ const CustomSelect = memo(function CustomSelect({ value, options, onChange, icon
  */
 const propertyTypeOptions: SelectOption[] = [
   { value: 'all', label: 'Todos los tipos' },
-  { value: "anexo", label: "anexo" },
+  { value: "anexo", label: "Anexo" },
   { value: 'casa', label: 'Casa' },
-  { value: 'townhouse', label: 'town house' },
-  { value: 'departamento', label: 'Departamento' },
+  { value: 'townhouse', label: 'Town House' },
+  { value: 'departamento', label: 'Apartamento' },
+  { value: 'parcela', label: 'Parcela' },
   { value: 'terreno', label: 'Terreno' },
   { value: 'local', label: 'Local Comercial' },
-  { value: "oficina", label: "oficina" },
+  { value: "oficina", label: "Oficina" },
 ];
 
 const priceOptions: SelectOption[] = [

@@ -386,6 +386,21 @@ export default function App() {
     return () => { document.body.style.overflow = ''; };
   }, [anyModalOpen]);
 
+  useEffect(() => {
+    if (properties.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const propertyId = params.get('property');
+    if (propertyId) {
+      const foundProperty = properties.find(p => p.id === propertyId);
+
+      if (foundProperty) {
+        setSelectedProperty(foundProperty);
+
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    }
+  }, [properties]);
+
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
   // rerender-use-ref-transient-values: cancel previous timer before setting new one
