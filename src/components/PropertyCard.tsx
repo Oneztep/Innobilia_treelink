@@ -78,11 +78,11 @@ const PropertyCard = memo(function PropertyCard({
     >
       {/* Image thumbnail */}
       <div className="relative w-full h-28 sm:w-40 sm:h-auto overflow-hidden shrink-0 bg-stone-100 rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none">
-        <div className="w-full aspect-[4/2] md:aspect-square ">
+        <div className="w-full aspect-[4/4] md:aspect-square">
           <img
             src={p.images[0]}
             alt={p.title}
-            className="w-full h-full object-cover group-hover:scale-[1.06] transition-transform duration-500 ease-out  "
+            className="w-full h-full object-cover object-center group-hover:scale-[1.06] transition-transform duration-500 ease-out  "
             loading="lazy"
             referrerPolicy="no-referrer"
             onError={(e) => {
@@ -107,7 +107,7 @@ const PropertyCard = memo(function PropertyCard({
       <div className="p-4 flex-1 flex flex-col justify-between gap-2.5">
         <div>
           <div className="flex items-start justify-between gap-2">
-            <h4 className="font-display font-semibold text-stone-900 text-[15px] leading-snug line-clamp-1 transition-colors"
+            <h4 className="font-display first-letter:uppercase lowercase font-semibold text-stone-900 text-[15px] leading-snug line-clamp-1 transition-colors"
               style={{} as React.CSSProperties}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#cc9a00'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = ''}>
@@ -120,7 +120,7 @@ const PropertyCard = memo(function PropertyCard({
           </div>
           <div className="flex items-center gap-1 text-[11px] text-stone-400 mt-1">
             <MapPin className="h-3 w-3 shrink-0" style={{ color: '#ffb900' }} />
-            <span className="line-clamp-1">{p.address}</span>
+            <span className="line-clamp-1 capitalize">{p.address}</span>
           </div>
         </div>
 

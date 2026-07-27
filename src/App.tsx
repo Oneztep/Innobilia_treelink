@@ -523,10 +523,11 @@ export default function App() {
     openConfirm({
       title: 'Tienes cambios sin guardar',
       message: '¿Estás completamente seguro?\n Perderás los cambios no guardados.',
-      confirmLabel: 'Cerrar',
-      variant: 'danger',
+      confirmLabel: 'cerrar',
+      variant: 'warning',
       onConfirm: () => {
         closeConfirm();
+        setShowAddModal(false)
       },
     });
   }

@@ -101,7 +101,6 @@ export async function fetchProperties(): Promise<Property[] | null> {
   const { data, error } = await supabase
     .from('properties')
     .select('id, title, description, address, location, price, rooms, bathrooms,area, images, virtual_tour_url,whatsapp_number,features,clicks,shares,created_at')
-    .limit(10)
     .order('created_at', { ascending: false });
 
   if (error) {

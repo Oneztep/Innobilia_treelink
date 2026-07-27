@@ -66,6 +66,7 @@ export default function AdminConsole({
       facebookUrl: 'https://facebook.com/innobilia',
       instagramUrl: 'https://instagram.com/innobilia.asesoresinversiones',
       whatsappUrl: 'https://wa.me/5218110000000',
+      adminSecret: '',
       // Blocker 2: use env var default, not hardcoded string
     });
     onShowToast('Valores demostrativos premium cargados.');
@@ -120,58 +121,6 @@ export default function AdminConsole({
           {window.location.origin}/
         </div>
       </div>
-
-      {/* Admin Link Generator */}
-      {/* <div className="p-4 rounded-xl space-y-3" style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid #334155' }}>
-        <div className="border-b pb-2" style={{ borderColor: '#334155' }}>
-          <h4 className="text-xs font-bold flex items-center gap-1.5" style={{ color: '#e2e8f0' }}>
-            <Lock className="h-3.5 w-3.5" style={{ color: '#ffb900' }} />
-            <span>Generador de Enlace Seguro de Administrador</span>
-          </h4>
-          <p className="text-[10px]" style={{ color: '#64748b' }}>
-            Crea un enlace secreto personalizado para ingresar directamente como Administrador/Asesor en el celular u otras pestañas sin requerir botones manuales de rol.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 space-y-1">
-              <label className="block text-[10px] font-mono font-bold uppercase" htmlFor="listing-admin-secret-key" style={{ color: '#94a3b8' }}>Clave Secreta de Acceso</label>
-              <input
-                id="listing-admin-secret-key"
-                type="text"
-                placeholder="ej. mi_clave.secreta@99#"
-                value={companySettings.adminSecret || 'secreto123'}
-                onChange={(e) =>
-                  onSaveSettings({ ...companySettings, adminSecret: e.target.value.replace(/[^a-zA-Z0-9_.\-/@#]/g, '') })
-                }
-                className="w-full rounded-lg border px-2.5 py-1.5 text-xs placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono"
-                style={{ background: '#0a0f1e', borderColor: '#334155', color: '#f8fafc' }}
-              />
-            </div>
-            <div className="shrink-0 flex items-end">
-              <button
-                onClick={handleCopyAdminLink}
-                className="w-full sm:w-auto px-4 py-2 text-white border text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                style={{ background: '#1e293b', borderColor: '#334155' }}
-              >
-                <Check className="h-3.5 w-3.5" style={{ color: '#22c55e' }} />
-                <span>Copiar Link Administrativo</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="p-2.5 rounded-lg border flex items-center justify-between text-[10px] font-mono whitespace-nowrap overflow-x-auto"
-            style={{ background: '#0a0f1e', borderColor: '#1e293b', color: '#ffb900' }}>
-            <span className="select-all block truncate">
-              {import.meta.env.VITE_APP_URL ?? window.location.origin}/#access={companySettings.adminSecret}
-            </span>
-            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded ml-2" style={{ color: '#475569', background: '#0f172b', border: '1px solid #1e293b' }}>
-              Súper Enlace Seguro
-            </span>
-          </div>
-        </div>
-      </div> */}
 
       {/* Branding Setup */}
       <div className="p-4 rounded-xl space-y-3" style={{ background: 'rgba(30,41,59,0.8)', border: '1px solid #334155' }}>

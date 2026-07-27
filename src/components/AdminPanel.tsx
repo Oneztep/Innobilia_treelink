@@ -201,7 +201,11 @@ export default function AdminPanel({
           </div>
 
           <div className="space-y-3 pt-2">
-            {properties.map(p => {
+            {[...properties].sort((a, b) => {
+              const clicksA = analytics.propertyClicks[a.id] || 0;
+              const clicksB = analytics.propertyClicks[b.id] || 0;
+              return clicksB - clicksA;
+            }).slice(0, 5).map(p => {
               const clicks = analytics.propertyClicks[p.id] || 0;
               const percentage = Math.max((clicks / maxClicks) * 100, 4);
               return (
@@ -231,7 +235,11 @@ export default function AdminPanel({
           </div>
 
           <div className="space-y-3 pt-2">
-            {properties.map(p => {
+            {[...properties].sort((a, b) => {
+              const sharesA = analytics.propertyShares[a.id] || 0;
+              const sharesB = analytics.propertyShares[b.id] || 0;
+              return sharesB - sharesA;
+            }).slice(0, 5).map(p => {
               const shares = analytics.propertyShares[p.id] || 0;
               const percentage = Math.max((shares / maxShares) * 100, 4);
               return (

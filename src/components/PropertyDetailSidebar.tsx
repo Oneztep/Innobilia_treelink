@@ -628,16 +628,16 @@ export default function PropertyDetailSidebar({
 
           <div className="space-y-1.5">
             <div className="flex items-start justify-between gap-3">
-              <h3 className="font-display text-base font-bold leading-snug" style={{ color: '#0f172b' }}>
+              <h3 className="font-display text-base font-bold leading-snug first-letter:uppercase lowercase" style={{ color: '#0f172b' }}>
                 {property.title}
               </h3>
               <span className="text-lg font-bold shrink-0 font-mono" style={{ color: '#0f172b' }}>
                 ${property.price.toLocaleString()}
               </span>
             </div>
-            <div className="flex items-center gap-1 text-xs text-slate-500">
+            <div className="flex items-center gap-1 text-xs text-slate-500 ">
               <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: '#ffb900' }} />
-              <span className="line-clamp-1">{property.address || property.location}</span>
+              <span className="line-clamp-1 first-letter:uppercase lowercase">{property.address || property.location}</span>
             </div>
           </div>
 

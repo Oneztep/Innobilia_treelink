@@ -90,7 +90,8 @@ export default function AddPropertyModal({ PropertiesId, isOpen, onClose, onSave
 
 
   // Guardamos objetos que contienen el archivo original y un ObjectURL temporal para la vista previa local
-  const [imagesList, setImagesList] = useState<{ file: File; preview: string; id: string }[]>([]);
+  const [imagesList, setImagesList] = useState<{ file: File; preview: string; id: string; isDeleting?: boolean }[]>([]);
+
   const [savedUrls, setSavedUrls] = useState<string[]>([]); // Para guardar URLs de propiedades ya existentes al editar
 
   const [imageUrlInput, setImageUrlInput] = useState('');
@@ -135,8 +136,6 @@ export default function AddPropertyModal({ PropertiesId, isOpen, onClose, onSave
     // e?.target?.files → seguro si e es un array (llamada desde handleDrop)
     const rawFiles = e?.target?.files ? Array.from(e.target.files) : Array.isArray(e) ? e : [];
 
-    const unicID = crypto.randomUUID();
-
     if (!rawFiles || rawFiles.length === 0) return;
 
     const newItems = (rawFiles as File[]).reduce((acc, file) => {
@@ -144,7 +143,7 @@ export default function AddPropertyModal({ PropertiesId, isOpen, onClose, onSave
         acc.push({
           file,
           preview: URL.createObjectURL(file),
-          id: unicID
+          id: crypto.randomUUID() // <--- GENÉRALO AQUÍ DIRECTAMENTE
         });
       }
       return acc;
@@ -158,15 +157,7 @@ export default function AddPropertyModal({ PropertiesId, isOpen, onClose, onSave
     // limpiar el input si fue un evento real
   };
 
-  useEffect(() => {
-    return () => {
-      imagesList.forEach(item => {
-        if (item.preview) {
-          URL.revokeObjectURL(item.preview);
-        }
-      });
-    };
-  }, [imagesList])
+
 
   const handleAddUrlImage = () => {
     if (imageUrlInput.trim()) {
@@ -179,11 +170,23 @@ export default function AddPropertyModal({ PropertiesId, isOpen, onClose, onSave
     if (isSaved) {
       setSavedUrls((prev) => prev.filter((_, idx) => idx !== indexToRemove));
     } else {
-      setImagesList((prev) => {
-        const item = prev[indexToRemove];
-        if (item) URL.revokeObjectURL(item.preview); // Liberamos la memoria del navegador
-        return prev.filter((_, idx) => idx !== indexToRemove);
-      });
+      // Obtenemos el ID único de la foto antes de hacer nada
+      const targetId = imagesList[indexToRemove]?.id;
+      if (!targetId) return;
+      // 1. Marcar como eliminando usando el ID
+      setImagesList((prev) =>
+        prev.map((item) =>
+          item.id === targetId ? { ...item, isDeleting: true } : item
+        )
+      );
+      // 2. Esperar 300ms y borrar usando el ID (a prueba de fallos)
+      setTimeout(() => {
+        setImagesList((prev) => {
+          const itemToKill = prev.find(i => i.id === targetId);
+          if (itemToKill && itemToKill.preview) URL.revokeObjectURL(itemToKill.preview);
+          return prev.filter((i) => i.id !== targetId);
+        });
+      }, 300);
     }
   };
 
@@ -413,17 +416,16 @@ export default function AddPropertyModal({ PropertiesId, isOpen, onClose, onSave
 
   const hasUnsavedChanges = (): boolean => {
     return (
-      totalImagesCount !== 1 || formData.title !== "" || formData.description !== "" || formData.price !== 0 || formData.location !== "" || formData.bathrooms !== 0 || formData.rooms !== 0 || formData.area !== 0
+      totalImagesCount >= 1 || formData.title !== "" || formData.description !== "" || formData.price >= 1 || formData.location !== "" || formData.bathrooms >= 1 || formData.rooms >= 1 || formData.area >= 1
     )
   }
 
   const handleSafeClose = () => {
     if (hasUnsavedChanges() && !editingProperty) {
       handleUnsavedChanges();
+    } else {
+      close();
     }
-
-    // Si no hay cambios o el usuario confirmó, se cierra el modal
-    close();
   };
 
   if (!isVisible) return null;
@@ -668,7 +670,7 @@ export default function AddPropertyModal({ PropertiesId, isOpen, onClose, onSave
                         onDragEnter={() => handleSortEnter(idx)}
                         onDragOver={(e) => e.preventDefault()}
                         onDragEnd={handleSortEnd}
-                        className="relative aspect-square rounded-lg overflow-hidden bg-white group cursor-grab active:cursor-grabbing"
+                        className="relative aspect-square rounded-lg overflow-hidden bg-white group cursor-grab active:cursor-grabbing transition-transform duration-500 ease-out animate-fade-in"
                         style={{ opacity: draggingItem.current === idx ? 0.35 : 1, transition: 'opacity 0.15s' }}
                       >
                         <img src={img} alt={`Foto guardada ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" />
@@ -707,8 +709,8 @@ export default function AddPropertyModal({ PropertiesId, isOpen, onClose, onSave
                           onDragEnter={() => handleSortEnter(globalIdx)}
                           onDragOver={(e) => e.preventDefault()}
                           onDragEnd={handleSortEnd}
-                          className="relative aspect-square rounded-lg overflow-hidden bg-white group cursor-grab active:cursor-grabbing"
-                          style={{ opacity: draggingItem.current === globalIdx ? 0.35 : 1, transition: 'opacity 0.15s' }}
+                          className={`relative aspect-square rounded-lg overflow-hidden bg-white group cursor-grab active:cursor-grabbing transition-all duration-300 ease-out ${item.isDeleting ? 'opacity-0 scale-90' : 'animate-fade-in'}`}
+                          style={{ opacity: draggingItem.current === globalIdx ? 0.35 : 1 }}
                         >
                           <img src={item.preview} alt={`Foto local ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" />
 
