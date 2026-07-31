@@ -637,7 +637,7 @@ export default function PropertyDetailSidebar({
             </div>
             <div className="flex items-center gap-1 text-xs text-slate-500 ">
               <MapPin className="h-3.5 w-3.5 shrink-0" style={{ color: '#ffb900' }} />
-              <span className="line-clamp-1 first-letter:uppercase lowercase">{property.address || property.location}</span>
+              <span className="line-clamp-1 capitalize">{property.address || property.location}</span>
             </div>
           </div>
 

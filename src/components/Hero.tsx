@@ -122,7 +122,7 @@ export function Hero({ companySettings, role, setIdentityFocusField, setShowIden
                         }}
                     >
                         <span>enlaces de contacto</span>
-                        <ChevronDown className="h-4 w-4 ease-expo-out mt-0.5 transition-colors" style={{ color: '#94a3b8' }} />
+                        <ChevronDown className="h-4 w-4 ease-expo-out mt-0.5  transition-all group-hover:translate-y-1" style={{ color: '#94a3b8' }} />
                     </button>
                 </div>
             )}
