@@ -53,7 +53,7 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
   const imagesLengthRef = useRef(images.length);
 
   if (imagesLengthRef.current === null) {
-    imagesLengthRef.current = images.length; // Se actualiza silenciosamente si cambian las fotos
+    imagesLengthRef.current = images.length;
   }
 
   // ── Close with animation ────────────────────────────────────────────────────
@@ -75,6 +75,7 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
         : (prev - 1 + images.length) % images.length
     );
   };
+
   const navigateRef = useRef(navigateLogic);
   navigateRef.current = navigateLogic;
   const navigate = useCallback((dir: 'prev' | 'next') => navigateRef.current(dir), []);
@@ -446,7 +447,6 @@ function Lightbox({ images, initialIndex, title, onClose }: LightboxProps) {
 // ─── PropertyDetailSidebar ────────────────────────────────────────────────────
 
 export default function PropertyDetailSidebar({
-  dialogRef,
   property,
   onClose,
   onOpenBooking,

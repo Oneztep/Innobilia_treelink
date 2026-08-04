@@ -259,28 +259,25 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const handleAdminLogin = async () => {
-    if (adminAuthInput === companySettings.adminSecret) {
-      try {
+    try {
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: "innobilia.asesoresinversiones@gmail.com",
-          password: adminAuthInput
-        });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: "innobilia.asesoresinversiones@gmail.com",
+        password: adminAuthInput
+      });
 
-        if (error || !data.session) {
-          setAdminAuthError(true);
-          return;
-        }
-        setRole('admin');
-        closeAuth();
-        showToast('¡Bienvenido! Modo Administrador activado.');
-      } catch (err) {
-        console.error('Fallo de red con Supabase:', err);
+      if (error || !data.session) {
         setAdminAuthError(true);
+        return;
       }
-    } else {
+      setRole('admin');
+      closeAuth();
+      showToast('¡Bienvenido! Modo Administrador activado.');
+    } catch (err) {
+      console.error('Fallo de red con Supabase:', err);
       setAdminAuthError(true);
     }
+
   };
 
   // ─── Persistence effects ───────────────────────────────────────────────────

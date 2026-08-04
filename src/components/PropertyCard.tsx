@@ -79,7 +79,7 @@ const PropertyCard = memo(function PropertyCard({
     >
       {/* Image thumbnail */}
       {/* Contenedor de la imagen ajustado a 200px cuadrado en md */}
-      <div className="relative w-full h-52 md:w-[200px] md:h-[200px] shrink-0 overflow-hidden bg-stone-100 rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
+      <div className="relative w-full h-40 md:w-[200px] md:h-[200px] shrink-0 overflow-hidden bg-stone-100 rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
         <img
           src={p.images[0]}
           alt={p.title}
@@ -104,7 +104,7 @@ const PropertyCard = memo(function PropertyCard({
       </div>
 
       {/* Details */}
-      <div className="p-4 flex-1 flex flex-col justify-between gap-2.5">
+      <div className="h-auto p-2.5 md:p-4 flex-1 flex flex-col justify-between gap-2.5">
         <div>
           <div className="flex items-start justify-between gap-2">
             <h4 className="font-display first-letter:uppercase lowercase font-semibold text-stone-900 text-xs sm:text-sm md:text-[15px] leading-tight break-words transition-colors"
@@ -128,21 +128,25 @@ const PropertyCard = memo(function PropertyCard({
         </div>
 
         {/* Specs */}
-        <div className="flex flex-col  gap-2">
-          <div className="flex items-center gap-3 text-[10px] sm:text-[11px] text-stone-400 font-mono">
-            <span className="md:hidden flex items-center gap-1">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-around gap-1.5 md:gap-3 text-[10px] sm:text-[11px] text-stone-400 font-mono">
+            <span className="sm:hidden flex items-center gap-1">
               <BedDouble className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 shrink-0" />
-              {p.rooms} Hab.
+              {p.rooms}
             </span>
-            <span className="hidden md:flex items-center gap-1 ">
+            <span className="max-sm:hidden flex items-center gap-1 ">
               <BedDouble className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 shrink-0" />
               {p.rooms} Habitaciones
             </span>
-            <span className="flex items-center gap-1 border-l border-stone-200 pl-2.5 sm:pl-3">
-              <Bath className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 shrink-0" />
+            <span className="sm:hidden flex items-center gap-1 pl-1.5 border-l border-stone-200 md:pl-2.5 sm:pl-3">
+              <BedDouble className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 shrink-0" />
+              {p.bathrooms}
+            </span>
+            <span className="max-sm:hidden flex items-center gap-1 pl-1.5 border-l border-stone-200 md:pl-2.5 sm:pl-3">
+              <BedDouble className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 shrink-0" />
               {p.bathrooms} Baños
             </span>
-            <span className="flex items-center gap-1 border-l border-stone-200 pl-2.5 sm:pl-3">
+            <span className="flex items-center gap-1 pl-1.5 border-l border-stone-200 md:pl-2.5 sm:pl-3">
               <Square className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 shrink-0" />
               {p.area} m²
             </span>
@@ -181,16 +185,16 @@ const PropertyCard = memo(function PropertyCard({
                 </button>
               ) : null}
             </div>
-
             <div className="flex items-center gap-0.5">
-              <button
-                type='button'
-                onClick={(e) => onShare(p, e)}
-                className="p-1.5 sm:p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
-                title="Compartir propiedad"
-              >
-                <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </button>
+              {role === 'client' ?
+                (<button
+                  type='button'
+                  onClick={(e) => onShare(p, e)}
+                  className="p-1.5 sm:p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+                  title="Compartir propiedad"
+                >
+                  <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </button>) : null}
 
               {role === 'admin' ? (
                 <div className="flex items-center border-l border-stone-200 pl-1.5 ml-0.5 gap-0.5">

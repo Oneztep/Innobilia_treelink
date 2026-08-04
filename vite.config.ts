@@ -17,21 +17,6 @@ export default defineConfig(() => {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
         runtimeCaching: [
           {
-            // Cachear imágenes de Supabase
-            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/.*/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images',
-              expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
-              cacheableResponse: {
-                statuses: [0, 200], // El estatus 0 es crucial para imágenes de servidores externos (CORS)
-              },
-            },
-          },
-          {
             // Cachear la API de Supabase (GET requests)
             urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/,
             handler: 'NetworkFirst',
@@ -74,7 +59,7 @@ export default defineConfig(() => {
         ],
       },
       devOptions: {
-        enabled: true, // Enable PWA in dev mode
+        enabled: false, // Enable PWA in dev mode
       },
     })],
     resolve: {
